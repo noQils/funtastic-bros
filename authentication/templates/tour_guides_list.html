@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Tour Guides - Funtastic Bros</title>
+{% endblock meta %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <!-- Header Section -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Tour Guides</h1>
+                    <p class="text-gray-600 mt-1">Temukan tour guide terbaik untuk perjalanan Anda</p>
+                </div>
+                <a href="{% url 'authentication:show_main' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% if tour_guides %}
+            <!-- Tour Guides Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for guide in tour_guides %}
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition duration-300">
+                    <!-- Profile Header -->
+                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white">
+                        <div class="flex items-center">
+                            <div class="bg-white bg-opacity-20 rounded-full w-16 h-16 flex items-center justify-center">
+                                <span class="text-2xl font-bold">{{ guide.username|first|upper }}</span>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-xl font-bold">{{ guide.username }}</h3>
+                                <p class="text-blue-100">{{ guide.get_role_display }}</p>
+                                <div class="flex items-center mt-1">
+                                    <svg class="w-4 h-4 text-yellow-300 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <span class="text-sm">{{ guide.total_ratings }} rating{{ guide.total_ratings|pluralize }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rating Stats -->
+                    <div class="p-6">
+                        {% if guide.total_ratings > 0 %}
+                            <h4 class="font-semibold text-gray-900 mb-3">Rating Stats</h4>
+                            <div class="space-y-2">
+                                <!-- Ramah -->
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">😊 Ramah</span>
+                                    <div class="flex items-center">
+                                        <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                            {% widthratio guide.ramah_count guide.total_ratings 100 as ramah_percentage %}
+                                            <div class="bg-green-500 h-2 rounded-full" style="width: {{ ramah_percentage|default:0 }}%"></div>
+                                        </div>
+                                        <span class="text-xs text-gray-500">{{ guide.ramah_count }}</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Seru -->
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">🎉 Seru</span>
+                                    <div class="flex items-center">
+                                        <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                            {% widthratio guide.seru_count guide.total_ratings 100 as seru_percentage %}
+                                            <div class="bg-yellow-500 h-2 rounded-full" style="width: {{ seru_percentage|default:0 }}%"></div>
+                                        </div>
+                                        <span class="text-xs text-gray-500">{{ guide.seru_count }}</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Informatif -->
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">📚 Informatif</span>
+                                    <div class="flex items-center">
+                                        <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                            {% widthratio guide.informatif_count guide.total_ratings 100 as informatif_percentage %}
+                                            <div class="bg-blue-500 h-2 rounded-full" style="width: {{ informatif_percentage|default:0 }}%"></div>
+                                        </div>
+                                        <span class="text-xs text-gray-500">{{ guide.informatif_count }}</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Fleksibel -->
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">🔄 Fleksibel</span>
+                                    <div class="flex items-center">
+                                        <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                            {% widthratio guide.fleksibel_count guide.total_ratings 100 as fleksibel_percentage %}
+                                            <div class="bg-purple-500 h-2 rounded-full" style="width: {{ fleksibel_percentage|default:0 }}%"></div>
+                                        </div>
+                                        <span class="text-xs text-gray-500">{{ guide.fleksibel_count }}</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Easy Going -->
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">😎 Easy Going</span>
+                                    <div class="flex items-center">
+                                        <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                            {% widthratio guide.easy_going_count guide.total_ratings 100 as easy_going_percentage %}
+                                            <div class="bg-indigo-500 h-2 rounded-full" style="width: {{ easy_going_percentage|default:0 }}%"></div>
+                                        </div>
+                                        <span class="text-xs text-gray-500">{{ guide.easy_going_count }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <p class="text-gray-500">Belum ada rating</p>
+                                <p class="text-sm text-gray-400">Jadilah yang pertama memberi rating!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="px-6 pb-6">
+                        <div class="grid grid-cols-2 gap-3">
+                            <a href="{% url 'authentication:tour_guide_profile' guide.id %}" class="text-center bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition duration-200 text-sm font-medium">
+                                View Profile
+                            </a>
+                            {% if user.is_authenticated and user.role == 'user' and user != guide %}
+                            <a href="{% url 'authentication:rate_tour_guide' guide.id %}" class="text-center bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200 text-sm font-medium">
+                                Rate Guide
+                            </a>
+                            {% else %}
+                            <button disabled class="text-center bg-gray-300 text-gray-500 py-2 px-4 rounded-lg text-sm font-medium cursor-not-allowed">
+                                {% if not user.is_authenticated %}Login to Rate{% elif user.role != 'user' %}Can't Rate{% else %}Can't Rate Self{% endif %}
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- No Tour Guides -->
+            <div class="text-center py-12">
+                <div class="bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto">
+                    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">No Tour Guides Available</h2>
+                    <p class="text-gray-600 mb-6">There are no tour guides registered yet.</p>
+                    <a href="{% url 'authentication:register' %}" class="bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition duration-200">
+                        Register as Tour Guide
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}

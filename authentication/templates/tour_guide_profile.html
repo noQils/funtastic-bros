@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>{{ tour_guide.username }} - Tour Guide Profile</title>
+{% endblock meta %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <!-- Header Section -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center">
+                    <a href="{% url 'authentication:tour_guides_list' %}" class="text-blue-600 hover:text-blue-500 mr-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Tour Guide Profile</h1>
+                        <p class="text-gray-600 mt-1">Detail profil dan rating tour guide</p>
+                    </div>
+                </div>
+                {% if can_rate %}
+                <a href="{% url 'authentication:rate_tour_guide' tour_guide.id %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                    {% if existing_rating %}Edit Rating{% else %}Rate Guide{% endif %}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Profile Info -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <!-- Profile Header -->
+                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-8 text-white text-center">
+                        <div class="bg-white bg-opacity-20 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
+                            <span class="text-4xl font-bold">{{ tour_guide.username|first|upper }}</span>
+                        </div>
+                        <h2 class="text-2xl font-bold">{{ tour_guide.username }}</h2>
+                        <p class="text-blue-100 mt-1">{{ tour_guide.get_role_display }}</p>
+                        {% if tour_guide.email %}
+                        <p class="text-blue-100 text-sm mt-2">{{ tour_guide.email }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Basic Stats -->
+                    <div class="p-6">
+                        <div class="grid grid-cols-2 gap-4 text-center">
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <div class="text-2xl font-bold text-blue-600">{{ tour_guide.total_ratings }}</div>
+                                <div class="text-sm text-gray-600">Total Rating{{ tour_guide.total_ratings|pluralize }}</div>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <div class="text-2xl font-bold text-green-600">
+                                    {% if tour_guide.total_ratings > 0 %}
+                                        {{ tour_guide.get_all_ratings.values|add:"0"|add:"0"|add:"0"|add:"0"|add:"0" }}
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                </div>
+                                <div class="text-sm text-gray-600">Total Poin</div>
+                            </div>
+                        </div>
+                        
+                        {% if tour_guide.date_joined %}
+                        <div class="mt-6 text-center">
+                            <p class="text-sm text-gray-500">Member since</p>
+                            <p class="font-medium text-gray-900">{{ tour_guide.date_joined|date:"F Y" }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Your Rating (if exists) -->
+                {% if existing_rating %}
+                <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Rating Anda</h3>
+                    <div class="space-y-2">
+                        {% for category in existing_rating.get_selected_ratings %}
+                        <div class="flex items-center">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {% if category == 'ramah' %}😊 Ramah
+                                {% elif category == 'seru' %}🎉 Seru
+                                {% elif category == 'informatif' %}📚 Informatif
+                                {% elif category == 'fleksibel' %}🔄 Fleksibel
+                                {% elif category == 'easy_going' %}😎 Easy Going
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% empty %}
+                        <p class="text-gray-500 text-sm">Belum ada rating yang dipilih</p>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-4">
+                        <a href="{% url 'authentication:rate_tour_guide' tour_guide.id %}" class="text-blue-600 hover:text-blue-500 text-sm font-medium">
+                            Edit Rating →
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Rating Details -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Rating & Reviews</h3>
+                    
+                    {% if tour_guide.total_ratings > 0 %}
+        <!-- Rating Breakdown -->
+        <div class="space-y-6">
+            <!-- Ramah -->
+            <div class="flex items-center">
+                <div class="w-20">
+                    <span class="text-lg">😊 Ramah</span>
+                </div>
+                <div class="flex-1 mx-4">
+                    <div class="bg-gray-200 rounded-full h-4">
+                        {% widthratio tour_guide.ramah_count tour_guide.total_ratings 100 as ramah_percentage %}
+                        <div class="bg-green-500 h-4 rounded-full transition-all duration-500" 
+                             style="width: {{ ramah_percentage|default:0 }}%"></div>
+                    </div>
+                </div>
+                <div class="w-16 text-right">
+                    <span class="text-sm font-medium text-gray-900">{{ tour_guide.ramah_count }}</span>
+                    <span class="text-xs text-gray-500">({{ ramah_percentage|default:0 }}%)</span>
+                </div>
+            </div>
+
+            <!-- Seru -->
+            <div class="flex items-center">
+                <div class="w-20">
+                    <span class="text-lg">🎉 Seru</span>
+                </div>
+                <div class="flex-1 mx-4">
+                    <div class="bg-gray-200 rounded-full h-4">
+                        {% widthratio tour_guide.seru_count tour_guide.total_ratings 100 as seru_percentage %}
+                        <div class="bg-yellow-500 h-4 rounded-full transition-all duration-500" 
+                             style="width: {{ seru_percentage|default:0 }}%"></div>
+                    </div>
+                </div>
+                <div class="w-16 text-right">
+                    <span class="text-sm font-medium text-gray-900">{{ tour_guide.seru_count }}</span>
+                    <span class="text-xs text-gray-500">({{ seru_percentage|default:0 }}%)</span>
+                </div>
+            </div>
+
+            <!-- Informatif -->
+            <div class="flex items-center">
+                <div class="w-20">
+                    <span class="text-lg">📚 Informatif</span>
+                </div>
+                <div class="flex-1 mx-4">
+                    <div class="bg-gray-200 rounded-full h-4">
+                        {% widthratio tour_guide.informatif_count tour_guide.total_ratings 100 as informatif_percentage %}
+                        <div class="bg-blue-500 h-4 rounded-full transition-all duration-500" 
+                             style="width: {{ informatif_percentage|default:0 }}%"></div>
+                    </div>
+                </div>
+                <div class="w-16 text-right">
+                    <span class="text-sm font-medium text-gray-900">{{ tour_guide.informatif_count }}</span>
+                    <span class="text-xs text-gray-500">({{ informatif_percentage|default:0 }}%)</span>
+                </div>
+            </div>
+
+            <!-- Fleksibel -->
+            <div class="flex items-center">
+                <div class="w-20">
+                    <span class="text-lg">🔄 Fleksibel</span>
+                </div>
+                <div class="flex-1 mx-4">
+                    <div class="bg-gray-200 rounded-full h-4">
+                        {% widthratio tour_guide.fleksibel_count tour_guide.total_ratings 100 as fleksibel_percentage %}
+                        <div class="bg-purple-500 h-4 rounded-full transition-all duration-500" 
+                             style="width: {{ fleksibel_percentage|default:0 }}%"></div>
+                    </div>
+                </div>
+                <div class="w-16 text-right">
+                    <span class="text-sm font-medium text-gray-900">{{ tour_guide.fleksibel_count }}</span>
+                    <span class="text-xs text-gray-500">({{ fleksibel_percentage|default:0 }}%)</span>
+                </div>
+            </div>
+
+            <!-- Easy Going -->
+            <div class="flex items-center">
+                <div class="w-20">
+                    <span class="text-lg">😎 Easy Going</span>
+                </div>
+                <div class="flex-1 mx-4">
+                    <div class="bg-gray-200 rounded-full h-4">
+                        {% widthratio tour_guide.easy_going_count tour_guide.total_ratings 100 as easy_going_percentage %}
+                        <div class="bg-indigo-500 h-4 rounded-full transition-all duration-500" 
+                             style="width: {{ easy_going_percentage|default:0 }}%"></div>
+                    </div>
+                </div>
+                <div class="w-16 text-right">
+                    <span class="text-sm font-medium text-gray-900">{{ tour_guide.easy_going_count }}</span>
+                    <span class="text-xs text-gray-500">({{ easy_going_percentage|default:0 }}%)</span>
+                </div>
+            </div>
+        </div>                        <!-- Rating Summary -->
+                        <div class="mt-8 bg-gray-50 rounded-lg p-6">
+                            <h4 class="font-semibold text-gray-900 mb-4">Rating Summary</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-green-600">{{ tour_guide.ramah_count }}</div>
+                                    <div class="text-xs text-gray-600">Ramah</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-yellow-600">{{ tour_guide.seru_count }}</div>
+                                    <div class="text-xs text-gray-600">Seru</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-blue-600">{{ tour_guide.informatif_count }}</div>
+                                    <div class="text-xs text-gray-600">Informatif</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-purple-600">{{ tour_guide.fleksibel_count }}</div>
+                                    <div class="text-xs text-gray-600">Fleksibel</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-indigo-600">{{ tour_guide.easy_going_count }}</div>
+                                    <div class="text-xs text-gray-600">Easy Going</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <!-- No Ratings Yet -->
+                        <div class="text-center py-12">
+                            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                            </svg>
+                            <h3 class="text-xl font-medium text-gray-900 mb-2">Belum Ada Rating</h3>
+                            <p class="text-gray-600 mb-6">{{ tour_guide.username }} belum mendapat rating dari pengguna.</p>
+                            {% if can_rate %}
+                            <a href="{% url 'authentication:rate_tour_guide' tour_guide.id %}" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition duration-200">
+                                Berikan Rating Pertama
+                            </a>
+                            {% else %}
+                            <p class="text-sm text-gray-500">
+                                {% if not user.is_authenticated %}Login sebagai user untuk memberikan rating
+                                {% elif user.role != 'user' %}Hanya user yang dapat memberikan rating
+                                {% else %}Anda tidak dapat memberikan rating pada diri sendiri
+                                {% endif %}
+                            </p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

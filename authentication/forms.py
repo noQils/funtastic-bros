@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User
+from .models import User, TourGuideRating
 
 class CustomUserCreationForm(UserCreationForm):
     role = forms.ChoiceField(
@@ -35,3 +35,40 @@ class CustomUserCreationForm(UserCreationForm):
             'class': 'form-control border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500',
             'placeholder': 'Confirm Password'
         })
+
+
+class TourGuideRatingForm(forms.ModelForm):
+    """Form for rating tour guides"""
+    
+    class Meta:
+        model = TourGuideRating
+        fields = ['ramah', 'seru', 'informatif', 'fleksibel', 'easy_going']
+        widgets = {
+            'ramah': forms.CheckboxInput(attrs={
+                'class': 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+            }),
+            'seru': forms.CheckboxInput(attrs={
+                'class': 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+            }),
+            'informatif': forms.CheckboxInput(attrs={
+                'class': 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+            }),
+            'fleksibel': forms.CheckboxInput(attrs={
+                'class': 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+            }),
+            'easy_going': forms.CheckboxInput(attrs={
+                'class': 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+            }),
+        }
+        labels = {
+            'ramah': 'Ramah',
+            'seru': 'Seru',
+            'informatif': 'Informatif',
+            'fleksibel': 'Fleksibel',
+            'easy_going': 'Easy Going',
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.required = False
