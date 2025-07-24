@@ -1,0 +1,274 @@
+/* Custom CSS for Funtastic Bros Travel App */
+/* Primary Color: #983132 (burgundy) */
+/* Accent Color: #E1A85F (golden) */
+
+:root {
+  --primary-color: #983132;
+  --primary-dark: #7a2829;
+  --primary-light: #b83d3e;
+  --accent-color: #E1A85F;
+  --accent-dark: #d4974b;
+  --accent-light: #e6b674;
+  --text-primary: #2d1b1b;
+  --text-secondary: #5a4848;
+  --bg-primary: #faf8f7;
+  --bg-secondary: #f5f1f0;
+}
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom button hover effects */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(152, 49, 50, 0.3);
+}
+
+.btn-secondary {
+  background-color: var(--accent-color);
+  color: var(--text-primary);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: var(--accent-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(225, 168, 95, 0.3);
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.2s;
+  border: 1px solid rgba(152, 49, 50, 0.1);
+}
+
+.card-hover:hover {
+  box-shadow: 0 8px 25px rgba(152, 49, 50, 0.15);
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
+}
+
+/* Form input focus styles */
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(152, 49, 50, 0.1);
+}
+
+/* Badge styles */
+.badge-primary {
+  background-color: rgba(152, 49, 50, 0.1);
+  color: var(--primary-color);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+.badge-success {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #059669;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+.badge-warning {
+  background-color: rgba(225, 168, 95, 0.2);
+  color: var(--accent-dark);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+/* Loading animation */
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive image styles */
+.img-responsive {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+
+/* Alert styles to match custom theme */
+.alert {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid;
+}
+
+.alert-success {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #059669;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.alert-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.alert-warning {
+  background-color: rgba(225, 168, 95, 0.15);
+  color: var(--accent-dark);
+  border-color: rgba(225, 168, 95, 0.4);
+}
+
+.alert-info {
+  background-color: rgba(152, 49, 50, 0.1);
+  color: var(--primary-color);
+  border-color: rgba(152, 49, 50, 0.3);
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .bg-gray-50 {
+    @apply bg-white;
+  }
+  
+  .text-gray-600 {
+    @apply text-gray-900;
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus styles for accessibility */
+.focus-outline {
+  outline: none;
+}
+
+.focus-outline:focus {
+  box-shadow: 0 0 0 2px var(--primary-color), 0 0 0 4px rgba(152, 49, 50, 0.2);
+}
+
+/* Rating stars */
+.rating-stars {
+  color: var(--accent-color);
+}
+
+.rating-stars-empty {
+  color: #d1d5db;
+}
+
+/* Custom gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+}
+
+.gradient-secondary {
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
+}
+
+.gradient-hero {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 50%, var(--accent-color) 100%);
+}
+
+/* Custom text colors */
+.text-primary-custom {
+  color: var(--primary-color);
+}
+
+.text-accent-custom {
+  color: var(--accent-color);
+}
+
+.bg-primary-custom {
+  background-color: var(--primary-color);
+}
+
+.bg-accent-custom {
+  background-color: var(--accent-color);
+}
+
+/* Navigation link hover effects */
+.nav-link {
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: var(--primary-color);
+}
+
+/* Custom borders */
+.border-primary-custom {
+  border-color: var(--primary-color);
+}
+
+.border-accent-custom {
+  border-color: var(--accent-color);
+}

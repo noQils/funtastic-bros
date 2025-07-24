@@ -4,14 +4,43 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Funtastic Bros - AI Travel Itinerary & Guide Matching{% endblock %}</title>
     {% block meta %} {% endblock meta %}
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/global.css' %}"/>
+    
+    {% block extra_head %}{% endblock %}
   </head>
-  <body>
+  <body class="min-h-screen flex flex-col" style="background-color: #faf8f7;">
     {% include 'navbar.html' %}
-    {% block content %} {% endblock content %}
+    
+    <!-- Messages -->
+    {% if messages %}
+      <div class="container mx-auto px-4 mt-4">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} mb-4 p-4 rounded-lg {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main class="flex-1">
+      {% block content %} {% endblock content %}
+    </main>
     
     {% include 'footer.html' %}
+    
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {% block extra_js %}{% endblock %}
   </body>
 </html>

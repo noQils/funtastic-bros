@@ -1,0 +1,139 @@
+<nav class="bg-white shadow-lg border-b-2" style="border-bottom-color: #983132;">
+  <div class="container mx-auto px-4">
+    <div class="flex justify-between items-center py-4">
+      <!-- Logo -->
+      <div class="flex items-center">
+        <a href="{% url 'itinerary:home' %}" class="text-2xl font-bold" style="color: #983132;">
+          <i class="fas fa-map-marked-alt mr-2" style="color: #E1A85F;"></i>
+          Funtastic Bros
+        </a>
+      </div>
+
+      <!-- Desktop Navigation -->
+      <div class="hidden md:flex items-center space-x-6">
+        <a href="{% url 'itinerary:home' %}" class="nav-link transition duration-200">
+          <i class="fas fa-home mr-1" style="color: #E1A85F;"></i>Home
+        </a>
+        <a href="{% url 'itinerary:explore' %}" class="nav-link transition duration-200">
+          <i class="fas fa-search mr-1" style="color: #E1A85F;"></i>Explore Itineraries
+        </a>
+        <a href="{% url 'guides:list' %}" class="nav-link transition duration-200">
+          <i class="fas fa-users mr-1" style="color: #E1A85F;"></i>Find Guides
+        </a>
+        <a href="{% url 'destinations:list' %}" class="nav-link transition duration-200">
+          <i class="fas fa-map-pin mr-1" style="color: #E1A85F;"></i>Destinations
+        </a>
+
+        {% if user.is_authenticated %}
+          <!-- User Menu -->
+          <div class="relative group">
+            <button class="flex items-center nav-link transition duration-200">
+              <i class="fas fa-user-circle mr-1" style="color: #E1A85F;"></i>
+              <span style="color: #983132;">{{ user.username }}</span>
+              <i class="fas fa-chevron-down ml-1 text-xs" style="color: #E1A85F;"></i>
+            </button>
+            <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block border" style="border-color: #983132;">
+              <a href="{% url 'itinerary:my_itineraries' %}" class="block px-4 py-2 text-sm nav-link">
+                <i class="fas fa-route mr-2" style="color: #E1A85F;"></i>My Itineraries
+              </a>
+              <a href="{% url 'itinerary:saved' %}" class="block px-4 py-2 text-sm nav-link">
+                <i class="fas fa-bookmark mr-2" style="color: #E1A85F;"></i>Saved Itineraries
+              </a>
+              {% if user.role == 'guider' %}
+                <div class="border-t" style="border-color: #E1A85F;"></div>
+                <a href="{% url 'guides:my_profile' %}" class="block px-4 py-2 text-sm nav-link">
+                  <i class="fas fa-id-card mr-2" style="color: #E1A85F;"></i>Guide Profile
+                </a>
+                <a href="{% url 'guides:bookings' %}" class="block px-4 py-2 text-sm nav-link">
+                  <i class="fas fa-calendar-alt mr-2" style="color: #E1A85F;"></i>My Bookings
+                </a>
+              {% else %}
+                <div class="border-t" style="border-color: #E1A85F;"></div>
+                <a href="{% url 'guides:register' %}" class="block px-4 py-2 text-sm nav-link">
+                  <i class="fas fa-user-plus mr-2" style="color: #E1A85F;"></i>Become a Guide
+                </a>
+              {% endif %}
+              <div class="border-t" style="border-color: #E1A85F;"></div>
+              <a href="{% url 'authentication:logout' %}" class="block px-4 py-2 text-sm nav-link">
+                <i class="fas fa-sign-out-alt mr-2" style="color: #E1A85F;"></i>Logout
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <!-- Login/Register -->
+          <a href="{% url 'authentication:login' %}" class="nav-link transition duration-200">
+            <i class="fas fa-sign-in-alt mr-1" style="color: #E1A85F;"></i>Login
+          </a>
+          <a href="{% url 'authentication:register' %}" class="btn-primary px-4 py-2 rounded-lg transition duration-200">
+            <i class="fas fa-user-plus mr-1"></i>Sign Up
+          </a>
+        {% endif %}
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <div class="md:hidden">
+        <button id="mobile-menu-button" class="nav-link">
+          <i class="fas fa-bars text-xl" style="color: #983132;"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <div id="mobile-menu" class="md:hidden hidden pb-4">
+      <div class="space-y-2">
+        <a href="{% url 'itinerary:home' %}" class="block nav-link py-2">
+          <i class="fas fa-home mr-2" style="color: #E1A85F;"></i>Home
+        </a>
+        <a href="{% url 'itinerary:explore' %}" class="block nav-link py-2">
+          <i class="fas fa-search mr-2" style="color: #E1A85F;"></i>Explore Itineraries
+        </a>
+        <a href="{% url 'guides:list' %}" class="block nav-link py-2">
+          <i class="fas fa-users mr-2" style="color: #E1A85F;"></i>Find Guides
+        </a>
+        <a href="{% url 'destinations:list' %}" class="block nav-link py-2">
+          <i class="fas fa-map-pin mr-2" style="color: #E1A85F;"></i>Destinations
+        </a>
+        
+        {% if user.is_authenticated %}
+          <div class="border-t pt-2 mt-2" style="border-color: #E1A85F;">
+            <a href="{% url 'itinerary:my_itineraries' %}" class="block nav-link py-2">
+              <i class="fas fa-route mr-2" style="color: #E1A85F;"></i>My Itineraries
+            </a>
+            <a href="{% url 'itinerary:saved' %}" class="block nav-link py-2">
+              <i class="fas fa-bookmark mr-2" style="color: #E1A85F;"></i>Saved Itineraries
+            </a>
+            {% if user.role == 'guider' %}
+              <a href="{% url 'guides:my_profile' %}" class="block nav-link py-2">
+                <i class="fas fa-id-card mr-2" style="color: #E1A85F;"></i>Guide Profile
+              </a>
+            {% else %}
+              <a href="{% url 'guides:register' %}" class="block nav-link py-2">
+                <i class="fas fa-user-plus mr-2" style="color: #E1A85F;"></i>Become a Guide
+              </a>
+            {% endif %}
+            <a href="{% url 'authentication:logout' %}" class="block nav-link py-2">
+              <i class="fas fa-sign-out-alt mr-2" style="color: #E1A85F;"></i>Logout
+            </a>
+          </div>
+        {% else %}
+          <div class="border-t pt-2 mt-2" style="border-color: #E1A85F;">
+            <a href="{% url 'authentication:login' %}" class="block nav-link py-2">
+              <i class="fas fa-sign-in-alt mr-2" style="color: #E1A85F;"></i>Login
+            </a>
+            <a href="{% url 'authentication:register' %}" class="block btn-primary px-4 py-2 rounded-lg text-center">
+              <i class="fas fa-user-plus mr-1"></i>Sign Up
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script>
+// Mobile menu toggle
+document.getElementById('mobile-menu-button').addEventListener('click', function() {
+  const mobileMenu = document.getElementById('mobile-menu');
+  mobileMenu.classList.toggle('hidden');
+});
+</script>

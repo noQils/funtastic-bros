@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ itinerary.title }} - Funtastic Bros{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Breadcrumb -->
+  <nav class="mb-6">
+    <div class="flex items-center space-x-2 text-sm" style="color: #5a4848;">
+      <a href="{% url 'itinerary:home' %}" class="transition duration-200" style="color: #5a4848;" onmouseover="this.style.color='#983132'" onmouseout="this.style.color='#5a4848'">Home</a>
+      <i class="fas fa-chevron-right"></i>
+      <a href="{% url 'itinerary:explore' %}" class="transition duration-200" style="color: #5a4848;" onmouseover="this.style.color='#983132'" onmouseout="this.style.color='#5a4848'">Itineraries</a>
+      <i class="fas fa-chevron-right"></i>
+      <span style="color: #2d1b1b;">{{ itinerary.title }}</span>
+    </div>
+  </nav>
+
+  <div class="grid lg:grid-cols-3 gap-8">
+    <!-- Main Content -->
+    <div class="lg:col-span-2">
+      <!-- Header -->
+      <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h1 class="text-3xl font-bold mb-2" style="color: #2d1b1b;">{{ itinerary.title }}</h1>
+            <div class="flex items-center mb-2" style="color: #5a4848;">
+              <i class="fas fa-map-pin mr-2" style="color: #E1A85F;"></i>
+              <span>{{ itinerary.city.name }}, {{ itinerary.city.province }}</span>
+              <span class="mx-2">•</span>
+              <i class="fas fa-calendar mr-2" style="color: #E1A85F;"></i>
+              <span>{{ itinerary.duration_days }} days</span>
+              <span class="mx-2">•</span>
+              <i class="fas fa-tag mr-2" style="color: #E1A85F;"></i>
+              <span>{{ itinerary.get_budget_range_display }}</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              {% for interest in itinerary.interests.all %}
+                <span class="badge-primary">{{ interest.name }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-2xl font-bold mb-2" style="color: #E1A85F;">
+              ฿{{ itinerary.estimated_total_cost|floatformat:0 }} IDR
+            </div>
+            <div class="text-sm" style="color: #5a4848;">
+              (฿{{ itinerary.estimated_daily_cost|floatformat:0 }} per day)
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4">
+          {% if user.is_authenticated and itinerary.user != user %}
+            <button onclick="saveItinerary({{ itinerary.id }})" 
+                    class="{% if is_saved %}alert-warning{% else %}bg-gray-200 hover:bg-gray-300{% endif %} text-gray-800 px-4 py-2 rounded-lg transition duration-200">
+              <i class="fas fa-bookmark mr-2"></i>
+              <span id="save-text">{% if is_saved %}Saved{% else %}Save Itinerary{% endif %}</span>
+            </button>
+          {% endif %}
+          
+          {% if user.is_authenticated and itinerary.user == user %}
+            <a href="{% url 'itinerary:find_guides' itinerary.id %}" 
+               class="btn-primary px-4 py-2 rounded-lg transition duration-200">
+              <i class="fas fa-users mr-2"></i>Find Guides
+            </a>
+          {% endif %}
+          
+          <button onclick="shareItinerary()" 
+                  class="btn-secondary px-4 py-2 rounded-lg transition duration-200">
+            <i class="fas fa-share mr-2"></i>Share
+          </button>
+        </div>
+      </div>
+
+      <!-- Daily Itinerary -->
+      {% for day in itinerary.days.all %}
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <h2 class="text-2xl font-bold mb-4" style="color: #2d1b1b;">{{ day.title }}</h2>
+          
+          {% if day.estimated_daily_cost > 0 %}
+            <div class="mb-4 text-sm" style="color: #5a4848;">
+              <i class="fas fa-wallet mr-1" style="color: #E1A85F;"></i>
+              Estimated daily cost: ฿{{ day.estimated_daily_cost|floatformat:0 }} IDR
+            </div>
+          {% endif %}
+
+          <div class="space-y-4">
+            {% for activity in day.activities.all %}
+              <div class="flex items-start gap-4 p-4 border border-gray-200 rounded-lg">
+                <!-- Time -->
+                <div class="flex-shrink-0 text-center">
+                  <div class="badge-primary px-3 py-1 rounded-lg font-semibold">
+                    {{ activity.start_time|time:"H:i" }}
+                  </div>
+                  <div class="text-xs mt-1" style="color: #5a4848;">
+                    {{ activity.duration_minutes }}min
+                  </div>
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1">
+                  <div class="flex justify-between items-start mb-2">
+                    <h3 class="text-lg font-semibold" style="color: #2d1b1b;">{{ activity.title }}</h3>
+                    {% if activity.estimated_cost > 0 %}
+                      <span class="font-semibold" style="color: #E1A85F;">
+                        ฿{{ activity.estimated_cost|floatformat:0 }} IDR
+                      </span>
+                    {% endif %}
+                  </div>
+                  
+                  <p class="mb-2" style="color: #5a4848;">{{ activity.description }}</p>
+                  
+                  {% if activity.destination %}
+                    <div class="text-sm mb-2" style="color: #5a4848;">
+                      <i class="fas fa-map-pin mr-1" style="color: #E1A85F;"></i>{{ activity.destination.address }}
+                    </div>
+                  {% elif activity.custom_location %}
+                    <div class="text-sm mb-2" style="color: #5a4848;">
+                      <i class="fas fa-map-pin mr-1" style="color: #E1A85F;"></i>{{ activity.custom_location }}
+                    </div>
+                  {% endif %}
+
+                  {% if activity.ai_notes %}
+                    <div class="alert-warning p-3 rounded-lg mt-2">
+                      <div class="text-sm" style="color: #8b5a00;">
+                        <i class="fas fa-lightbulb mr-1"></i>
+                        <strong>AI Tip:</strong> {{ activity.ai_notes }}
+                      </div>
+                    </div>
+                  {% endif %}
+
+                  <!-- Activity Type Badge -->
+                  <div class="mt-2">
+                    <span class="px-2 py-1 bg-gray-100 text-xs rounded-full" style="color: #5a4848;">
+                      {% if activity.activity_type == 'destination' %}
+                        <i class="fas fa-map-marked-alt mr-1"></i>Destination
+                      {% elif activity.activity_type == 'meal' %}
+                        <i class="fas fa-utensils mr-1"></i>Meal
+                      {% elif activity.activity_type == 'transport' %}
+                        <i class="fas fa-car mr-1"></i>Transport
+                      {% elif activity.activity_type == 'rest' %}
+                        <i class="fas fa-bed mr-1"></i>Rest
+                      {% elif activity.activity_type == 'shopping' %}
+                        <i class="fas fa-shopping-bag mr-1"></i>Shopping
+                      {% else %}
+                        <i class="fas fa-star mr-1"></i>Activity
+                      {% endif %}
+                      {{ activity.get_activity_type_display }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="lg:col-span-1">
+      <!-- Creator Info -->
+      <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold mb-4" style="color: #2d1b1b;">Created by</h3>
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold" style="background-color: #983132;">
+            {{ itinerary.user.first_name.0|default:itinerary.user.username.0|upper }}
+          </div>
+          <div>
+            <div class="font-semibold" style="color: #2d1b1b;">
+              {{ itinerary.user.get_full_name|default:itinerary.user.username }}
+            </div>
+            <div class="text-sm" style="color: #5a4848;">
+              Created {{ itinerary.created_at|date:"M d, Y" }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Available Guides -->
+      {% if available_guides %}
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <h3 class="text-lg font-semibold mb-4" style="color: #2d1b1b;">Recommended Guides</h3>
+          <div class="space-y-4">
+            {% for guide in available_guides %}
+              <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm" style="background-color: #E1A85F;">
+                    {{ guide.user.first_name.0|default:guide.user.username.0|upper }}
+                  </div>
+                  <div>
+                    <div class="font-semibold" style="color: #2d1b1b;">{{ guide.full_name }}</div>
+                    <div class="text-sm" style="color: #E1A85F;">
+                      {% for i in "12345" %}
+                        {% if forloop.counter <= guide.average_rating %}
+                          <i class="fas fa-star"></i>
+                        {% else %}
+                          <i class="far fa-star"></i>
+                        {% endif %}
+                      {% endfor %}
+                      ({{ guide.total_reviews }})
+                    </div>
+                  </div>
+                </div>
+                <div class="text-sm mb-2" style="color: #5a4848;">
+                  {{ guide.years_of_experience }} years experience
+                </div>
+                <div class="text-sm font-semibold" style="color: #E1A85F;">
+                  ฿{{ guide.daily_rate|floatformat:0 }} IDR/day
+                </div>
+                <div class="mt-2">
+                  <a href="{% url 'guides:profile' guide.id %}" 
+                     class="text-sm hover:underline transition duration-200" style="color: #983132;">View Profile</a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          {% if user.is_authenticated and itinerary.user == user %}
+            <div class="mt-4">
+              <a href="{% url 'itinerary:find_guides' itinerary.id %}" 
+                 class="block w-full text-center btn-primary py-2 rounded-lg transition duration-200">
+                Find More Guides
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <!-- Trip Summary -->
+      <div class="bg-white rounded-lg shadow-lg p-6">
+        <h3 class="text-lg font-semibold mb-4" style="color: #2d1b1b;">Trip Summary</h3>
+        <div class="space-y-3">
+          <div class="flex justify-between">
+            <span style="color: #5a4848;">Duration:</span>
+            <span class="font-semibold" style="color: #2d1b1b;">{{ itinerary.duration_days }} days</span>
+          </div>
+          <div class="flex justify-between">
+            <span style="color: #5a4848;">Budget Range:</span>
+            <span class="font-semibold" style="color: #2d1b1b;">{{ itinerary.get_budget_range_display }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span style="color: #5a4848;">Total Activities:</span>
+            <span class="font-semibold" style="color: #2d1b1b;">{{ itinerary.days.count }} days</span>
+          </div>
+          <div class="border-t pt-3">
+            <div class="flex justify-between text-lg">
+              <span class="font-semibold" style="color: #2d1b1b;">Estimated Cost:</span>
+              <span class="font-bold" style="color: #E1A85F;">฿{{ itinerary.estimated_total_cost|floatformat:0 }} IDR</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function saveItinerary(itineraryId) {
+  fetch(`/save/${itineraryId}/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(response => response.json())
+  .then(data => {
+    const saveText = document.getElementById('save-text');
+    const button = saveText.parentElement;
+    
+    if (data.saved) {
+      saveText.textContent = 'Saved';
+      button.className = 'alert-warning text-gray-800 px-4 py-2 rounded-lg transition duration-200';
+    } else {
+      saveText.textContent = 'Save Itinerary';
+      button.className = 'bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition duration-200';
+    }
+    
+    // Show message
+    alert(data.message);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('An error occurred. Please try again.');
+  });
+}
+
+function shareItinerary() {
+  if (navigator.share) {
+    navigator.share({
+      title: '{{ itinerary.title }}',
+      text: 'Check out this amazing travel itinerary for {{ itinerary.city.name }}!',
+      url: window.location.href
+    });
+  } else {
+    // Fallback: copy to clipboard
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      alert('Link copied to clipboard!');
+    });
+  }
+}
+</script>
+{% endblock %}

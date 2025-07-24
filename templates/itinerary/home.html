@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Travel Itinerary Generator - Funtastic Bros{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="gradient-hero text-white py-20">
+  <div class="container mx-auto px-4 text-center">
+    <h1 class="text-5xl font-bold mb-6">Plan Your Perfect Indonesian Adventure</h1>
+    <p class="text-xl mb-8 max-w-3xl mx-auto opacity-95">
+      Generate personalized travel itineraries with AI and connect with amazing local guides 
+      who know the hidden gems of Indonesia
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="#generator" class="bg-white px-8 py-3 rounded-lg font-semibold transition duration-200 hover:shadow-lg" style="color: #983132;">
+        <i class="fas fa-magic mr-2"></i>Generate My Itinerary
+      </a>
+      <a href="{% url 'guides:list' %}" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white transition duration-200 hover:text-current" style="--text-current: #983132;">
+        <i class="fas fa-users mr-2"></i>Find Local Guides
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-16 bg-white">
+  <div class="container mx-auto px-4">
+    <h2 class="text-3xl font-bold text-center mb-12" style="color: #2d1b1b;">Why Choose Funtastic Bros?</h2>
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="text-center p-6 rounded-lg border card-hover transition duration-200" style="border-color: rgba(152, 49, 50, 0.1);">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: rgba(152, 49, 50, 0.1);">
+          <i class="fas fa-robot text-2xl" style="color: #983132;"></i>
+        </div>
+        <h3 class="text-xl font-semibold mb-3" style="color: #983132;">AI-Powered Planning</h3>
+        <p style="color: #5a4848;">Our AI creates personalized itineraries based on your interests, budget, and travel style.</p>
+      </div>
+      <div class="text-center p-6 rounded-lg border card-hover transition duration-200" style="border-color: rgba(152, 49, 50, 0.1);">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: rgba(225, 168, 95, 0.2);">
+          <i class="fas fa-map-marked-alt text-2xl" style="color: #E1A85F;"></i>
+        </div>
+        <h3 class="text-xl font-semibold mb-3" style="color: #983132;">Local Expertise</h3>
+        <p style="color: #5a4848;">Connect with verified local guides who know the best spots and hidden gems.</p>
+      </div>
+      <div class="text-center p-6 rounded-lg border card-hover transition duration-200" style="border-color: rgba(152, 49, 50, 0.1);">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: rgba(152, 49, 50, 0.1);">
+          <i class="fas fa-heart text-2xl" style="color: #983132;"></i>
+        </div>
+        <h3 class="text-xl font-semibold mb-3" style="color: #983132;">Personalized Experience</h3>
+        <p style="color: #5a4848;">Every itinerary is tailored to match your preferences and travel goals.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Itinerary Generator Section -->
+<section id="generator" class="py-16" style="background-color: #f5f1f0;">
+  <div class="container mx-auto px-4">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-8" style="color: #2d1b1b;">Create Your AI-Generated Itinerary</h2>
+      
+      <div class="bg-white rounded-lg shadow-lg p-8">
+        <form method="POST" action="{% url 'itinerary:generate' %}">
+          {% csrf_token %}
+          
+          <div class="grid md:grid-cols-2 gap-6">
+            <!-- City Selection -->
+            <div>
+              <label for="city" class="block text-sm font-medium mb-2" style="color: #2d1b1b;">
+                <i class="fas fa-map-pin mr-1" style="color: #E1A85F;"></i>Choose Your Destination
+              </label>
+              <select name="city" id="city" required class="form-input" style="border-color: #e5e7eb;">
+                <option value="">Select a city...</option>
+                {% for city in cities %}
+                  <option value="{{ city.id }}">{{ city.name }}, {{ city.province }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Duration -->
+            <div>
+              <label for="duration_days" class="block text-sm font-medium mb-2" style="color: #2d1b1b;">
+                <i class="fas fa-calendar mr-1" style="color: #E1A85F;"></i>Trip Duration
+              </label>
+              <select name="duration_days" id="duration_days" required class="form-input">
+                <option value="1">1 Day</option>
+                <option value="2">2 Days</option>
+                <option value="3" selected>3 Days</option>
+                <option value="4">4 Days</option>
+                <option value="5">5 Days</option>
+                <option value="7">1 Week</option>
+                <option value="10">10 Days</option>
+                <option value="14">2 Weeks</option>
+              </select>
+            </div>
+
+            <!-- Budget Range -->
+            <div>
+              <label for="budget_range" class="block text-sm font-medium mb-2" style="color: #2d1b1b;">
+                <i class="fas fa-wallet mr-1" style="color: #E1A85F;"></i>Budget Range (per day)
+              </label>
+              <select name="budget_range" id="budget_range" required class="form-input">
+                <option value="budget">Budget (< 500K IDR)</option>
+                <option value="mid-range" selected>Mid-range (500K - 1.5M IDR)</option>
+                <option value="luxury">Luxury (> 1.5M IDR)</option>
+              </select>
+            </div>
+
+            <!-- Start Date (Optional) -->
+            <div>
+              <label for="start_date" class="block text-sm font-medium mb-2" style="color: #2d1b1b;">
+                <i class="fas fa-calendar-alt mr-1" style="color: #E1A85F;"></i>Start Date (Optional)
+              </label>
+              <input type="date" name="start_date" id="start_date" class="form-input">
+            </div>
+          </div>
+
+          <!-- Interests -->
+          <div class="mt-6">
+            <label class="block text-sm font-medium mb-3" style="color: #2d1b1b;">
+              <i class="fas fa-heart mr-1" style="color: #E1A85F;"></i>What are you interested in? (Select all that apply)
+            </label>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {% for interest in interests %}
+                <label class="flex items-center p-3 border rounded-lg cursor-pointer transition duration-200 hover:shadow-md" style="border-color: rgba(152, 49, 50, 0.1); background-color: #fefefe;">
+                  <input type="checkbox" name="interests" value="{{ interest.id }}" class="mr-2 focus-outline" style="accent-color: #983132;">
+                  <span class="text-sm" style="color: #2d1b1b;">{{ interest.name }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="mt-8">
+            {% if user.is_authenticated %}
+              <button type="submit" class="w-full btn-primary py-3 px-6 rounded-lg font-semibold transition duration-200">
+                <i class="fas fa-magic mr-2"></i>Generate My AI Itinerary
+              </button>
+            {% else %}
+              <div class="text-center">
+                <p class="mb-4" style="color: #5a4848;">Please log in to generate your personalized itinerary</p>
+                <a href="{% url 'authentication:login' %}" class="inline-block btn-primary py-3 px-8 rounded-lg font-semibold transition duration-200">
+                  <i class="fas fa-sign-in-alt mr-2"></i>Login to Continue
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Itineraries -->
+{% if featured_itineraries %}
+<section class="py-16 bg-white">
+  <div class="container mx-auto px-4">
+    <h2 class="text-3xl font-bold text-center mb-12" style="color: #2d1b1b;">Featured Travel Itineraries</h2>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% for itinerary in featured_itineraries %}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden card-hover">
+          <div class="p-6">
+            <h3 class="text-xl font-semibold mb-2" style="color: #983132;">{{ itinerary.title }}</h3>
+            <div class="text-sm mb-4" style="color: #5a4848;">
+              <i class="fas fa-map-pin mr-1" style="color: #E1A85F;"></i>{{ itinerary.city.name }}
+              <span class="mx-2">•</span>
+              <i class="fas fa-calendar mr-1" style="color: #E1A85F;"></i>{{ itinerary.duration_days }} days
+              <span class="mx-2">•</span>
+              <i class="fas fa-tag mr-1" style="color: #E1A85F;"></i>{{ itinerary.get_budget_range_display }}
+            </div>
+            <div class="flex flex-wrap gap-2 mb-4">
+              {% for interest in itinerary.interests.all %}
+                <span class="badge-primary">{{ interest.name }}</span>
+              {% endfor %}
+            </div>
+            <div class="text-right">
+              <span class="text-lg font-bold" style="color: #E1A85F;">
+                ฿{{ itinerary.estimated_total_cost|floatformat:0 }} IDR
+              </span>
+            </div>
+            <div class="mt-4">
+              <a href="{% url 'itinerary:detail' itinerary.id %}" class="block w-full text-center btn-primary py-2 rounded-lg transition duration-200">
+                View Details
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-8">
+      <a href="{% url 'itinerary:explore' %}" class="inline-block btn-secondary px-6 py-2 rounded-lg transition duration-200">
+        View All Itineraries
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- CTA Section -->
+<section class="py-16 gradient-primary text-white">
+  <div class="container mx-auto px-4 text-center">
+    <h2 class="text-3xl font-bold mb-4">Ready to Start Your Indonesian Adventure?</h2>
+    <p class="text-xl mb-8 opacity-95">Join thousands of travelers who have discovered amazing experiences with our AI-powered platform</p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="#generator" class="bg-white px-8 py-3 rounded-lg font-semibold transition duration-200 hover:shadow-lg" style="color: #983132;">
+        Create Itinerary Now
+      </a>
+      <a href="{% url 'guides:list' %}" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white transition duration-200" style="--hover-color: #983132;" onmouseover="this.style.color=this.style.getPropertyValue('--hover-color')" onmouseout="this.style.color='white'">
+        Browse Local Guides
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -6,19 +6,19 @@
 {% endblock meta %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen gradient-warm py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md mx-auto">
         <div class="bg-white rounded-lg shadow-xl p-8">
             <!-- Header -->
             <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-gray-900 mb-2">Daftar Akun</h2>
-                <p class="text-gray-600">Buat akun baru untuk bergabung dengan Funtastic Bros</p>
+                <h2 class="text-3xl font-bold mb-2" style="color: #2d1b1b;">Daftar Akun</h2>
+                <p style="color: #5a4848;">Buat akun baru untuk bergabung dengan Funtastic Bros</p>
             </div>
 
             <!-- Messages -->
             {% if messages %}
                 {% for message in messages %}
-                    <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 border border-red-300 text-red-700{% else %}bg-green-100 border border-green-300 text-green-700{% endif %}">
+                    <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}
@@ -30,7 +30,7 @@
                 
                 <!-- Username Field -->
                 <div>
-                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium mb-2" style="color: #2d1b1b;">
                         Username
                     </label>
                     {{ form.username }}
@@ -45,7 +45,7 @@
 
                 <!-- Email Field -->
                 <div>
-                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium mb-2" style="color: #2d1b1b;">
                         Email
                     </label>
                     {{ form.email }}
@@ -60,7 +60,7 @@
 
                 <!-- Role Field -->
                 <div>
-                    <label for="{{ form.role.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="{{ form.role.id_for_label }}" class="block text-sm font-medium mb-2" style="color: #2d1b1b;">
                         Role <span class="text-red-500">*</span>
                     </label>
                     {{ form.role }}
@@ -71,14 +71,14 @@
                             {% endfor %}
                         </div>
                     {% endif %}
-                    <p class="mt-1 text-sm text-gray-500">
+                    <p class="mt-1 text-sm" style="color: #5a4848;">
                         Pilih "User" jika ingin menggunakan aplikasi, atau "Guider" jika ingin menjadi pembimbing
                     </p>
                 </div>
 
                 <!-- Password Field -->
                 <div>
-                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium mb-2" style="color: #2d1b1b;">
                         Password
                     </label>
                     {{ form.password1 }}
@@ -93,7 +93,7 @@
 
                 <!-- Confirm Password Field -->
                 <div>
-                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium mb-2" style="color: #2d1b1b;">
                         Konfirmasi Password
                     </label>
                     {{ form.password2 }}
@@ -108,7 +108,7 @@
 
                 <!-- Submit Button -->
                 <div class="pt-4">
-                    <button type="submit" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200">
+                    <button type="submit" class="btn-primary w-full py-3 px-4 font-medium transition duration-200">
                         Daftar Sekarang
                     </button>
                 </div>
@@ -116,9 +116,9 @@
 
             <!-- Login Link -->
             <div class="mt-6 text-center">
-                <p class="text-gray-600">
+                <p style="color: #5a4848;">
                     Sudah punya akun? 
-                    <a href="{% url 'authentication:login' %}" class="text-blue-600 hover:text-blue-500 font-medium">
+                    <a href="{% url 'authentication:login' %}" class="font-medium transition duration-200" style="color: #983132;" onmouseover="this.style.color='#E1A85F'" onmouseout="this.style.color='#983132'">
                         Masuk di sini
                     </a>
                 </p>

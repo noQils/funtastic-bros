@@ -37,13 +37,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'authentication',
+    'itinerary',
+    'guides',
+    'destinations',
 ]
 
 # Custom user model
 AUTH_USER_MODEL = 'authentication.User'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -124,3 +129,37 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# CORS settings for frontend integration
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+# Static files settings
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Environment variables
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# AI Configuration
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+
+# Default city for MVP (Malang)
+DEFAULT_CITY = 'Malang'
+
+# Pagination settings
+ITINERARY_ITEMS_PER_PAGE = 10
+GUIDES_PER_PAGE = 12

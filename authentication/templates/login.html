@@ -6,19 +6,19 @@
 {% endblock meta %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen gradient-warm py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md mx-auto">
         <div class="bg-white rounded-lg shadow-xl p-8">
             <!-- Header -->
             <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-gray-900 mb-2">Masuk Akun</h2>
-                <p class="text-gray-600">Selamat datang kembali di Funtastic Bros</p>
+                <h2 class="text-3xl font-bold mb-2" style="color: #2d1b1b;">Masuk Akun</h2>
+                <p style="color: #5a4848;">Selamat datang kembali di Funtastic Bros</p>
             </div>
 
             <!-- Messages -->
             {% if messages %}
                 {% for message in messages %}
-                    <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 border border-red-300 text-red-700{% else %}bg-green-100 border border-green-300 text-green-700{% endif %}">
+                    <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}
@@ -30,13 +30,13 @@
                 
                 <!-- Username Field -->
                 <div>
-                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium mb-2" style="color: #2d1b1b;">
                         Username
                     </label>
                     <input type="text" 
                            name="username" 
                            id="{{ form.username.id_for_label }}"
-                           class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                           class="form-input w-full px-4 py-3 transition duration-200"
                            placeholder="Masukkan username Anda"
                            required>
                     {% if form.username.errors %}
@@ -50,20 +50,20 @@
 
                 <!-- Password Field -->
                 <div>
-                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium mb-2" style="color: #2d1b1b;">
                         Password
                     </label>
                     <div class="relative">
                         <input type="password" 
                                name="password" 
                                id="{{ form.password.id_for_label }}"
-                               class="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                               class="form-input w-full px-4 py-3 pr-12 transition duration-200"
                                placeholder="Masukkan password Anda"
                                required>
                         <!-- Toggle Password Visibility Button -->
                         <button type="button" 
                                 onclick="togglePassword()" 
-                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2 transition duration-200" style="color: #5a4848;" onmouseover="this.style.color='#983132'" onmouseout="this.style.color='#5a4848'">
                             <svg id="eye-open" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -88,13 +88,13 @@
                         <input type="checkbox" 
                                name="remember_me" 
                                id="remember_me" 
-                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                        <label for="remember_me" class="ml-2 block text-sm text-gray-700">
+                               class="h-4 w-4 border-gray-300 rounded" style="color: #983132;">
+                        <label for="remember_me" class="ml-2 block text-sm" style="color: #2d1b1b;">
                             Ingat saya
                         </label>
                     </div>
                     <div class="text-sm">
-                        <a href="#" class="text-blue-600 hover:text-blue-500 font-medium">
+                        <a href="#" class="font-medium transition duration-200" style="color: #983132;" onmouseover="this.style.color='#E1A85F'" onmouseout="this.style.color='#983132'">
                             Lupa password?
                         </a>
                     </div>
@@ -102,7 +102,7 @@
 
                 <!-- Submit Button -->
                 <div class="pt-4">
-                    <button type="submit" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 transform hover:scale-[1.02]">
+                    <button type="submit" class="btn-primary w-full py-3 px-4 font-medium transition duration-200 transform hover:scale-[1.02]">
                         Masuk
                     </button>
                 </div>
@@ -110,9 +110,9 @@
 
             <!-- Register Link -->
             <div class="mt-6 text-center">
-                <p class="text-gray-600">
+                <p style="color: #5a4848;">
                     Belum punya akun? 
-                    <a href="{% url 'authentication:register' %}" class="text-blue-600 hover:text-blue-500 font-medium">
+                    <a href="{% url 'authentication:register' %}" class="font-medium transition duration-200" style="color: #983132;" onmouseover="this.style.color='#E1A85F'" onmouseout="this.style.color='#983132'">
                         Daftar di sini
                     </a>
                 </p>
