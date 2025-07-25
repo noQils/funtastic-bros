@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Your Itinerary - Funtastic Bros</title>
+{% endblock meta %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-6xl mx-auto px-4">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold mb-2" style="color: #983132;">Your Perfect Itinerary</h1>
+            <p class="text-gray-600">AI-generated travel plan based on your preferences</p>
+        </div>
+
+        {% if itinerary %}
+        <!-- Itinerary Overview -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="text-2xl mb-2" style="color: #983132;">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h3 class="font-semibold">Destination</h3>
+                    <p class="text-gray-600">{{ itinerary.city_name }}</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl mb-2" style="color: #983132;">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <h3 class="font-semibold">Duration</h3>
+                    <p class="text-gray-600">{{ itinerary.duration_days }} days</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl mb-2" style="color: #983132;">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <h3 class="font-semibold">Budget</h3>
+                    <p class="text-gray-600">{{ itinerary.budget_range|title }}</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl mb-2" style="color: #983132;">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h3 class="font-semibold">Style</h3>
+                    <p class="text-gray-600">{{ itinerary.travel_style|title }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Itinerary -->
+        <div class="space-y-6">
+            {% for day_info in itinerary.daily_plans %}
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <!-- Day Header -->
+                <div class="p-4" style="background-color: #983132;">
+                    <h2 class="text-xl font-bold text-white">
+                        <i class="fas fa-calendar-day mr-2"></i>
+                        Day {{ day_info.day }} - {{ day_info.date }}
+                    </h2>
+                    {% if day_info.theme %}
+                    <p class="text-red-100 mt-1">{{ day_info.theme }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Day Activities -->
+                <div class="p-6">
+                    {% if day_info.activities %}
+                    <div class="space-y-4">
+                        {% for activity in day_info.activities %}
+                        <div class="border-l-4 border-red-300 pl-4 py-2">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center mb-2">
+                                        <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-medium mr-3">
+                                            {{ activity.time }}
+                                        </span>
+                                        <h3 class="font-semibold text-lg">{{ activity.name }}</h3>
+                                    </div>
+                                    
+                                    {% if activity.description %}
+                                    <p class="text-gray-600 mb-2">{{ activity.description }}</p>
+                                    {% endif %}
+                                    
+                                    <div class="flex flex-wrap gap-2 text-sm text-gray-500">
+                                        {% if activity.duration %}
+                                        <span class="flex items-center">
+                                            <i class="fas fa-clock mr-1"></i>
+                                            {{ activity.duration }}
+                                        </span>
+                                        {% endif %}
+                                        
+                                        {% if activity.cost %}
+                                        <span class="flex items-center">
+                                            <i class="fas fa-tag mr-1"></i>
+                                            {{ activity.cost }}
+                                        </span>
+                                        {% endif %}
+                                        
+                                        {% if activity.category %}
+                                        <span class="flex items-center">
+                                            <i class="fas fa-bookmark mr-1"></i>
+                                            {{ activity.category }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if activity.tips %}
+                                    <div class="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-400">
+                                        <p class="text-sm text-yellow-800">
+                                            <i class="fas fa-lightbulb mr-1"></i>
+                                            <strong>Tip:</strong> {{ activity.tips }}
+                                        </p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if activity.location %}
+                                <div class="ml-4 text-right">
+                                    <button onclick="showLocation('{{ activity.location }}')" 
+                                            class="text-red-600 hover:text-red-800 transition-colors">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500 italic">No specific activities planned for this day.</p>
+                    {% endif %}
+                    
+                    <!-- Daily Budget -->
+                    {% if day_info.estimated_cost %}
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">Estimated Daily Cost:</span>
+                            <span class="font-bold" style="color: #983132;">{{ day_info.estimated_cost }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Travel Tips -->
+        {% if itinerary.general_tips %}
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-8">
+            <h2 class="text-xl font-bold mb-4" style="color: #983132;">
+                <i class="fas fa-compass mr-2"></i>
+                Travel Tips for {{ itinerary.city_name }}
+            </h2>
+            <div class="prose max-w-none">
+                {{ itinerary.general_tips|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Transportation -->
+        {% if itinerary.transportation %}
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-8">
+            <h2 class="text-xl font-bold mb-4" style="color: #983132;">
+                <i class="fas fa-car mr-2"></i>
+                Transportation Information
+            </h2>
+            <div class="prose max-w-none">
+                {{ itinerary.transportation|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Total Budget -->
+        {% if itinerary.total_estimated_cost %}
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-8">
+            <h2 class="text-xl font-bold mb-4" style="color: #983132;">
+                <i class="fas fa-calculator mr-2"></i>
+                Budget Summary
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <h3 class="font-semibold mb-2">Total Estimated Cost</h3>
+                    <p class="text-2xl font-bold" style="color: #983132;">{{ itinerary.total_estimated_cost }}</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <h3 class="font-semibold mb-2">Cost per Day</h3>
+                    <p class="text-2xl font-bold" style="color: #983132;">{{ itinerary.cost_per_day }}</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <h3 class="font-semibold mb-2">Budget Range</h3>
+                    <p class="text-2xl font-bold" style="color: #983132;">{{ itinerary.budget_range|title }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div class="text-center mt-8 space-x-4">
+            <a href="{% url 'itinerary:create' %}" 
+               class="inline-block px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-200">
+                <i class="fas fa-plus mr-2"></i>
+                Create New Itinerary
+            </a>
+            
+            <button onclick="printItinerary()" 
+                    class="inline-block px-6 py-3 text-white rounded-lg hover:opacity-90 transition duration-200" 
+                    style="background-color: #983132;">
+                <i class="fas fa-print mr-2"></i>
+                Print Itinerary
+            </button>
+            
+            <button onclick="shareItinerary()" 
+                    class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200">
+                <i class="fas fa-share mr-2"></i>
+                Share Itinerary
+            </button>
+        </div>
+
+        {% else %}
+        <!-- No Itinerary Found -->
+        <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+            <div class="text-6xl mb-4" style="color: #983132;">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-4">No Itinerary Found</h2>
+            <p class="text-gray-600 mb-6">It looks like you haven't created an itinerary yet or the session has expired.</p>
+            <a href="{% url 'itinerary:create' %}" 
+               class="inline-block px-6 py-3 text-white rounded-lg hover:opacity-90 transition duration-200" 
+               style="background-color: #983132;">
+                <i class="fas fa-plus mr-2"></i>
+                Create Your First Itinerary
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function showLocation(location) {
+    const query = encodeURIComponent(location);
+    const url = `https://www.google.com/maps/search/${query}`;
+    window.open(url, '_blank');
+}
+
+function printItinerary() {
+    window.print();
+}
+
+function shareItinerary() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'My Travel Itinerary - Funtastic Bros',
+            text: 'Check out my personalized travel itinerary!',
+            url: window.location.href
+        }).catch(console.error);
+    } else {
+        // Fallback: copy URL to clipboard
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('Itinerary URL copied to clipboard!');
+        }).catch(() => {
+            alert('Unable to share. Please copy the URL manually: ' + window.location.href);
+        });
+    }
+}
+
+// Print styles
+const printStyles = `
+@media print {
+    .no-print { display: none !important; }
+    .bg-white { background: white !important; }
+    .shadow-lg { box-shadow: none !important; }
+    .text-white { color: black !important; }
+    .bg-red-600, .bg-gray-600, .bg-blue-600 { background: #983132 !important; color: white !important; }
+    body { font-size: 12px; }
+    .text-3xl { font-size: 1.5rem; }
+    .text-2xl { font-size: 1.25rem; }
+    .text-xl { font-size: 1.125rem; }
+}
+`;
+
+// Add print styles to head
+const style = document.createElement('style');
+style.textContent = printStyles;
+document.head.appendChild(style);
+</script>
+{% endblock content %}

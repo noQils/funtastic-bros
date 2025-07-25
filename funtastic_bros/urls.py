@@ -21,10 +21,10 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('itinerary.urls')),
-    path('auth/', include('authentication.urls')),
+    path('itinerary/', include('itinerary.urls')),
     path('guides/', include('guides.urls')),
     path('destinations/', include('destinations.urls')),
+    path('', include('authentication.urls')),  # Root includes auth
 ]
 
 # Serve media files in development

@@ -17,6 +17,7 @@ from django.http import JsonResponse
 from .forms import CustomUserCreationForm, TourGuideRatingForm
 from .models import User, TourGuideRating
 from django.db import transaction
+from destinations.models import City, Destination
 
 def register_user(request):
     form = CustomUserCreationForm()
@@ -69,6 +70,9 @@ def logout_user(request):
     return response
 
 def show_main(request):
+    # Get all cities for the main page
+    cities = City.objects.filter(is_active=True)
+    
     if request.user.is_authenticated:
         username = request.user.username
         last_login = request.COOKIES.get('last_login', 'No login recorded')
@@ -78,10 +82,23 @@ def show_main(request):
 
     context = {
         'username': username,
-        'last_login': last_login
+        'last_login': last_login,
+        'cities': cities
     }
 
     return render(request, 'show_main.html', context)
+
+def city_destinations(request, city_id):
+    """Display all destinations for a specific city"""
+    city = get_object_or_404(City, id=city_id, is_active=True)
+    destinations = Destination.objects.filter(city=city, is_active=True).select_related('category')
+    
+    context = {
+        'city': city,
+        'destinations': destinations
+    }
+    
+    return render(request, 'city_destinations.html', context)
 
 
 def tour_guides_list(request):

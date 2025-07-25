@@ -31,12 +31,12 @@
 
             <!-- Make Itinerary Button -->
             <div class="flex justify-center mb-6">
-                <button class="flex items-center space-x-3 px-8 py-3 text-white rounded-full font-semibold hover:opacity-90 transition duration-200 shadow-lg" style="background-color: #983132;">
+                <a href="{% url 'itinerary:create' %}" class="flex items-center space-x-3 px-8 py-3 text-white rounded-full font-semibold hover:opacity-90 transition duration-200 shadow-lg" style="background-color: #983132;">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                     </svg>
                     <span class="text-lg">Make Itinerary</span>
-                </button>
+                </a>
             </div>
 
             <!-- Search Bar -->
@@ -107,26 +107,25 @@
             <div class="rounded-xl p-8" style="background: linear-gradient(135deg, rgba(152, 49, 50, 0.1), rgba(225, 168, 95, 0.1));">
                 <h3 class="text-2xl font-bold mb-6 text-center" style="color: #983132;">Kota Populer</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-white rounded-lg p-4 text-center shadow-sm hover:shadow-md transition duration-200" style="border-top: 3px solid #E1A85F;">
-                        <div class="text-2xl mb-2">🏛️</div>
-                        <h4 class="font-semibold" style="color: #983132;">Jakarta</h4>
-                        <p class="text-sm text-gray-600">50+ Tour Guide</p>
+                    {% for city in cities %}
+                    <a href="{% url 'authentication:city_destinations' city.id %}" class="bg-white rounded-lg p-4 text-center shadow-sm hover:shadow-md transition duration-200 cursor-pointer" style="border-top: 3px solid #E1A85F;">
+                        <div class="text-2xl mb-2">
+                            {% if city.name == "Jakarta" %}🏛️
+                            {% elif city.name == "Bali" %}🏝️
+                            {% elif city.name == "Yogyakarta" %}🏛️
+                            {% elif city.name == "Bandung" %}�️
+                            {% elif city.name == "Surabaya" %}🏙️
+                            {% elif city.name == "Semarang" %}🏢
+                            {% else %}🌆{% endif %}
+                        </div>
+                        <h4 class="font-semibold" style="color: #983132;">{{ city.name }}</h4>
+                        <p class="text-sm text-gray-600">{{ city.destination_set.count }} Destinations</p>
+                    </a>
+                    {% empty %}
+                    <div class="col-span-full text-center py-8">
+                        <p class="text-gray-600">No cities available</p>
                     </div>
-                    <div class="bg-white rounded-lg p-4 text-center shadow-sm hover:shadow-md transition duration-200" style="border-top: 3px solid #E1A85F;">
-                        <div class="text-2xl mb-2">🏝️</div>
-                        <h4 class="font-semibold" style="color: #983132;">Bali</h4>
-                        <p class="text-sm text-gray-600">80+ Tour Guide</p>
-                    </div>
-                    <div class="bg-white rounded-lg p-4 text-center shadow-sm hover:shadow-md transition duration-200" style="border-top: 3px solid #E1A85F;">
-                        <div class="text-2xl mb-2">🏛️</div>
-                        <h4 class="font-semibold" style="color: #983132;">Yogyakarta</h4>
-                        <p class="text-sm text-gray-600">45+ Tour Guide</p>
-                    </div>
-                    <div class="bg-white rounded-lg p-4 text-center shadow-sm hover:shadow-md transition duration-200" style="border-top: 3px solid #E1A85F;">
-                        <div class="text-2xl mb-2">🏔️</div>
-                        <h4 class="font-semibold" style="color: #983132;">Bandung</h4>
-                        <p class="text-sm text-gray-600">35+ Tour Guide</p>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>

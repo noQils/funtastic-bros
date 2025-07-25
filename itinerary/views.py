@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 import json
+import re
 from datetime import datetime, timedelta
 
 from .models import (
@@ -16,6 +17,19 @@ from .models import (
 from destinations.models import City, Destination
 from guides.models import TourGuide
 from .ai_service import AIItineraryService
+
+def extract_cost_value(cost_string):
+    """Extract numeric value from cost strings like 'IDR 2,450,000' or 'IDR 500,000'"""
+    if not cost_string:
+        return 0
+    
+    # Remove currency symbols, commas, and extract numbers
+    numeric_part = re.sub(r'[^\d.]', '', str(cost_string))
+    
+    try:
+        return float(numeric_part) if numeric_part else 0
+    except ValueError:
+        return 0
 
 def home(request):
     """Home page with itinerary generation form"""
@@ -29,6 +43,109 @@ def home(request):
         'featured_itineraries': featured_itineraries,
     }
     return render(request, 'itinerary/home.html', context)
+
+def create_itinerary(request):
+    """Display the itinerary creation form"""
+    cities = City.objects.filter(is_active=True)
+    interests = TravelInterest.objects.all()
+    
+    context = {
+        'cities': cities,
+        'interests': interests,
+    }
+    return render(request, 'itinerary/create.html', context)
+
+@require_http_methods(["POST"])
+def generate_itinerary(request):
+    """Generate an itinerary using AI"""
+    try:
+        # Get form data
+        city_id = request.POST.get('city')
+        budget_range = request.POST.get('budget_range')
+        duration_days = int(request.POST.get('duration_days', 3))
+        start_date = request.POST.get('start_date')
+        travel_style = request.POST.get('travel_style', 'relaxed')
+        interests = request.POST.getlist('interests')
+        additional_preferences = request.POST.get('additional_preferences', '')
+
+        # Validate required fields
+        if not all([city_id, budget_range, duration_days, start_date]):
+            messages.error(request, 'Please fill in all required fields.')
+            return redirect('itinerary:create')
+
+        # Get city and interest objects
+        city = get_object_or_404(City, id=city_id)
+        interest_objects = TravelInterest.objects.filter(id__in=interests)
+        interest_names = [interest.name for interest in interest_objects]
+
+        # Get destinations for this city
+        destinations = Destination.objects.filter(city=city, is_active=True)
+        destinations_data = []
+        for dest in destinations:
+            destinations_data.append({
+                'id': dest.id,
+                'name': dest.name,
+                'description': dest.description,
+                'category': dest.category.name,
+                'price': float(dest.average_cost),
+                'rating': float(dest.rating),
+                'time_minutes': float(dest.estimated_duration_hours * 60),
+            })
+
+        # Initialize AI service and generate itinerary
+        ai_service = AIItineraryService()
+        result = ai_service.generate_itinerary(
+            city=city.name,
+            interests=interest_names,
+            budget_range=budget_range,
+            duration_days=duration_days,
+            travel_style=travel_style,
+            additional_preferences=additional_preferences,
+            available_destinations=destinations_data
+        )
+
+        if result['success']:
+            # Store the result in session for the result page
+            request.session['itinerary_result'] = {
+                'itinerary': result['itinerary'],
+                'city': city.name,
+                'city_id': city.id,
+                'budget_range': budget_range,
+                'duration_days': duration_days,
+                'travel_style': travel_style,
+                'interests': interest_names,
+                'destinations_used': result.get('destinations_used', []),
+                'rag_enabled': result.get('rag_enabled', False),
+                'practical_info': result.get('practical_info', {}),
+                'ai_response_raw': result.get('ai_response_raw', ''),
+            }
+            return redirect('itinerary:result')
+        else:
+            messages.error(request, 'Failed to generate itinerary. Please try again.')
+            return redirect('itinerary:create')
+
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+        return redirect('itinerary:create')
+
+def itinerary_result(request):
+    """Display the generated itinerary result"""
+    itinerary_data = request.session.get('itinerary_result')
+    
+    if not itinerary_data:
+        messages.error(request, 'No itinerary data found. Please generate a new itinerary.')
+        return redirect('itinerary:create')
+    
+    context = {
+        'itinerary': itinerary_data['itinerary'],
+        'city': itinerary_data['city'],
+        'destinations_used': itinerary_data.get('destinations_used', []),
+        'rag_enabled': itinerary_data.get('rag_enabled', False),
+        'practical_info': itinerary_data.get('practical_info', {}),
+        'debug': True,  # Set to False in production
+    }
+    
+    return render(request, 'itinerary/result.html', context)
 
 @login_required
 @require_http_methods(["POST"])
@@ -86,6 +203,17 @@ def generate_itinerary(request):
             messages.error(request, 'Failed to generate itinerary. Please try again.')
             return redirect('itinerary:home')
         
+        # Extract numeric values from cost strings
+        total_cost_str = result['itinerary'].get('total_estimated_cost', '0')
+        daily_cost_str = result['itinerary'].get('daily_cost', total_cost_str)
+        
+        total_cost = extract_cost_value(total_cost_str)
+        daily_cost = extract_cost_value(daily_cost_str)
+        
+        # If daily cost is not available, calculate from total
+        if daily_cost == 0 and total_cost > 0:
+            daily_cost = total_cost / duration_days
+        
         # Create itinerary in database
         itinerary = Itinerary.objects.create(
             user=request.user,
@@ -95,10 +223,10 @@ def generate_itinerary(request):
             duration_days=duration_days,
             start_date=datetime.strptime(start_date, '%Y-%m-%d').date() if start_date else None,
             end_date=datetime.strptime(start_date, '%Y-%m-%d').date() + timedelta(days=duration_days-1) if start_date else None,
-            ai_prompt_used=result['prompt_used'],
-            ai_response_raw=result['ai_response_raw'],
-            estimated_total_cost=result['itinerary']['total_estimated_cost'],
-            estimated_daily_cost=result['itinerary']['daily_cost'],
+            ai_prompt_used=result.get('prompt_used', ''),
+            ai_response_raw=result.get('ai_response_raw', ''),
+            estimated_total_cost=total_cost,
+            estimated_daily_cost=daily_cost,
         )
         
         # Add interests
@@ -106,46 +234,62 @@ def generate_itinerary(request):
         
         # Create itinerary days and activities
         for day_data in result['itinerary']['days']:
+            # Extract daily cost
+            daily_cost_value = extract_cost_value(day_data.get('daily_total', '0'))
+            
             itinerary_day = ItineraryDay.objects.create(
                 itinerary=itinerary,
-                day_number=day_data['day_number'],
-                title=day_data['title'],
-                estimated_daily_cost=day_data.get('daily_cost', 0)
+                day_number=day_data['day'],
+                title=day_data.get('theme', f"Day {day_data['day']}"),
+                estimated_daily_cost=daily_cost_value
             )
             
             for i, activity_data in enumerate(day_data['activities']):
                 # Find destination if specified
                 destination = None
-                if activity_data.get('destination_name'):
+                if activity_data.get('location'):
                     destination = destinations.filter(
-                        name__icontains=activity_data['destination_name']
+                        name__icontains=activity_data['location']
                     ).first()
                 
                 # Parse time
                 try:
-                    start_time = datetime.strptime(activity_data['time'], '%H:%M').time()
-                    duration_minutes = activity_data['duration_minutes']
+                    time_range = activity_data.get('time', '09:00 AM - 10:00 AM')
+                    if ' - ' in time_range:
+                        start_time_str = time_range.split(' - ')[0].strip()
+                        # Handle AM/PM format
+                        if 'AM' in start_time_str or 'PM' in start_time_str:
+                            start_time = datetime.strptime(start_time_str, '%I:%M %p').time()
+                        else:
+                            start_time = datetime.strptime(start_time_str, '%H:%M').time()
+                    else:
+                        start_time = datetime.strptime('09:00', '%H:%M').time()
+                    
+                    duration_minutes = 120  # Default 2 hours
                     start_datetime = datetime.combine(datetime.today(), start_time)
                     end_datetime = start_datetime + timedelta(minutes=duration_minutes)
                     end_time = end_datetime.time()
                 except:
                     start_time = datetime.strptime('09:00', '%H:%M').time()
-                    end_time = datetime.strptime('10:00', '%H:%M').time()
-                    duration_minutes = 60
+                    end_time = datetime.strptime('11:00', '%H:%M').time()
+                    duration_minutes = 120
+                
+                # Extract activity cost
+                activity_cost = extract_cost_value(activity_data.get('cost', '0'))
                 
                 ItineraryActivity.objects.create(
                     day=itinerary_day,
                     destination=destination,
-                    activity_type=activity_data.get('type', 'destination'),
-                    title=activity_data['title'],
+                    activity_type=activity_data.get('type', 'activity'),
+                    title=activity_data.get('activity', activity_data.get('title', 'Activity')),
                     description=activity_data.get('description', ''),
                     start_time=start_time,
                     end_time=end_time,
                     duration_minutes=duration_minutes,
-                    estimated_cost=activity_data.get('estimated_cost', 0),
-                    custom_location=activity_data.get('destination_name', '') if not destination else '',
+                    estimated_cost=activity_cost,
+                    custom_location=activity_data.get('location', '') if not destination else '',
                     order=i,
-                    ai_notes=activity_data.get('notes', '')
+                    ai_notes=activity_data.get('tips', '')
                 )
         
         messages.success(request, 'Your personalized itinerary has been generated!')

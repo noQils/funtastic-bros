@@ -209,7 +209,6 @@ class AIItineraryService:
                 'success': True,
                 'itinerary': structured_itinerary,
                 'ai_response_raw': ai_response,
-                'prompt_used': prompt,  # Add this missing key
                 'destinations_used': relevant_destinations,
                 'rag_enabled': True,
                 'practical_info': structured_itinerary.get('practical_info', {})
@@ -430,194 +429,6 @@ Make this itinerary authentic, practical, and perfectly suited to the traveler's
             "days": days
         }
 
-    def match_guide_to_itinerary(self, itinerary_data: Dict, available_guides: List[Dict]) -> List[Dict]:
-        """
-        Use AI to match tour guides to an itinerary based on compatibility
-        
-        Args:
-            itinerary_data: Dict containing itinerary preferences
-            available_guides: List of guide data dicts
-            
-        Returns:
-            List of matched guides with compatibility scores
-        """
-        try:
-            if not self.api_available or not available_guides:
-                return self._fallback_guide_matching(itinerary_data, available_guides)
-            
-            # Prepare prompt for guide matching
-            prompt = f"""
-            Based on the following travel itinerary preferences, rank and match the best tour guides.
-            
-            ITINERARY DETAILS:
-            - Interests: {', '.join(itinerary_data.get('interests', []))}
-            - Budget Range: {itinerary_data.get('budget_range', 'Not specified')}
-            - Duration: {itinerary_data.get('duration_days', 'Not specified')} days
-            
-            AVAILABLE GUIDES:
-            """
-            
-            for i, guide in enumerate(available_guides):
-                prompt += f"""
-            {i+1}. {guide['name']}
-               - Experience: {guide['years_of_experience']} years
-               - Specialties: {', '.join(guide.get('specialties', []))}
-               - Languages: {', '.join(guide.get('languages', []))}
-               - Personality: {', '.join(guide.get('personality_traits', []))}
-               - Hourly Rate: Rp {guide['hourly_rate']:,.0f}
-               - Daily Rate: Rp {guide['daily_rate']:,.0f}
-               - Rating: {guide['average_rating']}/5.0 ({guide['total_reviews']} reviews)
-               - Bio: {guide.get('bio', 'No bio available')[:200]}...
-                """
-            
-            prompt += """
-            
-            Please analyze each guide and provide:
-            1. Compatibility score (0-100) based on how well they match the itinerary
-            2. Specific reasons for the match
-            3. Rank them by compatibility
-            
-            Respond with a JSON array of the top 5 guides, ordered by compatibility score:
-            [
-                {
-                    "id": guide_id,
-                    "name": "Guide Name",
-                    "compatibility_score": 85,
-                    "match_reasons": [
-                        "Specializes in cultural tourism which matches your interests",
-                        "Highly rated guide with excellent reviews",
-                        "Speaks multiple languages for better communication"
-                    ],
-                    "recommended_for": "Cultural exploration and local insights",
-                    "estimated_cost_per_day": 750000
-                }
-            ]
-            """
-            
-            response = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are an expert travel consultant specializing in matching tourists with the perfect tour guides based on their preferences and travel style."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=2000,
-                temperature=0.3
-            )
-            
-            # Parse AI response
-            ai_response = response.choices[0].message.content
-            
-            # Try to extract JSON from response
-            try:
-                # Find JSON array in response
-                start_idx = ai_response.find('[')
-                end_idx = ai_response.rfind(']') + 1
-                if start_idx != -1 and end_idx != -1:
-                    json_str = ai_response[start_idx:end_idx]
-                    matched_guides = json.loads(json_str)
-                    
-                    # Validate and enhance the results
-                    enhanced_matches = []
-                    for match in matched_guides[:5]:  # Top 5 matches
-                        guide_id = match.get('id')
-                        guide_data = next((g for g in available_guides if g['id'] == guide_id), None)
-                        
-                        if guide_data:
-                            enhanced_match = {
-                                'id': guide_id,
-                                'name': match.get('name', guide_data['name']),
-                                'compatibility_score': min(100, max(0, match.get('compatibility_score', 50))),
-                                'match_reasons': match.get('match_reasons', ['General compatibility']),
-                                'recommended_for': match.get('recommended_for', 'Tour guidance'),
-                                'estimated_cost_per_day': match.get('estimated_cost_per_day', guide_data['daily_rate']),
-                                'guide_data': guide_data
-                            }
-                            enhanced_matches.append(enhanced_match)
-                    
-                    return enhanced_matches
-                    
-            except json.JSONDecodeError:
-                logger.warning("Could not parse AI response as JSON, using fallback matching")
-                
-        except Exception as e:
-            logger.error(f"Error in AI guide matching: {str(e)}")
-        
-        # Fallback to rule-based matching
-        return self._fallback_guide_matching(itinerary_data, available_guides)
-    
-    def _fallback_guide_matching(self, itinerary_data: Dict, available_guides: List[Dict]) -> List[Dict]:
-        """
-        Rule-based fallback for guide matching when AI is not available
-        """
-        try:
-            matched_guides = []
-            interests = set(itinerary_data.get('interests', []))
-            budget_range = itinerary_data.get('budget_range', 'mid-range')
-            
-            for guide in available_guides:
-                # Calculate compatibility score based on rules
-                score = 0
-                reasons = []
-                
-                # Interest matching (40% of score)
-                guide_specialties = set(guide.get('specialties', []))
-                interest_overlap = len(interests.intersection(guide_specialties))
-                if interest_overlap > 0:
-                    score += 40 * (interest_overlap / max(len(interests), 1))
-                    reasons.append(f"Specializes in {interest_overlap} of your interest areas")
-                
-                # Rating quality (30% of score)
-                rating_score = (guide.get('average_rating', 0) / 5.0) * 30
-                score += rating_score
-                if guide.get('average_rating', 0) >= 4.0:
-                    reasons.append(f"Highly rated ({guide['average_rating']}/5.0)")
-                
-                # Experience factor (20% of score)
-                experience_years = guide.get('years_of_experience', 0)
-                experience_score = min(20, experience_years * 2)
-                score += experience_score
-                if experience_years >= 3:
-                    reasons.append(f"Experienced guide with {experience_years} years")
-                
-                # Budget compatibility (10% of score)
-                daily_rate = guide.get('daily_rate', 0)
-                budget_score = 10
-                if budget_range == 'budget' and daily_rate <= 500000:
-                    budget_score = 10
-                    reasons.append("Budget-friendly rates")
-                elif budget_range == 'mid-range' and 500000 <= daily_rate <= 1500000:
-                    budget_score = 10
-                    reasons.append("Reasonable rates for mid-range budget")
-                elif budget_range == 'luxury' and daily_rate >= 1000000:
-                    budget_score = 10
-                    reasons.append("Premium service provider")
-                else:
-                    budget_score = 5
-                
-                score += budget_score
-                
-                # Create match result
-                match_result = {
-                    'id': guide['id'],
-                    'name': guide['name'],
-                    'compatibility_score': round(score, 1),
-                    'match_reasons': reasons if reasons else ['Available in your destination'],
-                    'recommended_for': 'Local guidance and tour assistance',
-                    'estimated_cost_per_day': daily_rate,
-                    'guide_data': guide
-                }
-                
-                matched_guides.append(match_result)
-            
-            # Sort by compatibility score
-            matched_guides.sort(key=lambda x: x['compatibility_score'], reverse=True)
-            
-            return matched_guides[:5]  # Return top 5 matches
-            
-        except Exception as e:
-            logger.error(f"Error in fallback guide matching: {str(e)}")
-            return []
-
     def _generate_fallback_itinerary(self, city: str, interests: List[str], 
                                    budget_range: str, duration_days: int,
                                    travel_style: str = 'balanced',
@@ -747,7 +558,6 @@ Make this itinerary authentic, practical, and perfectly suited to the traveler's
                 'success': True,
                 'itinerary': itinerary,
                 'ai_response_raw': f"Fallback itinerary generated using {len(relevant_destinations)} real destinations",
-                'prompt_used': f"Fallback generation for {city} with {', '.join(interests)} interests",
                 'rag_enabled': True,
                 'destinations_used': relevant_destinations
             }
@@ -778,7 +588,6 @@ Make this itinerary authentic, practical, and perfectly suited to the traveler's
             'success': True,
             'itinerary': fallback_itinerary,
             'ai_response_raw': f"Generic fallback itinerary generated for {city}",
-            'prompt_used': f"Generic fallback for {city}",
             'rag_enabled': False,
             'destinations_used': []
         }

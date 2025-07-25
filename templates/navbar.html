@@ -3,7 +3,7 @@
     <div class="flex justify-between items-center py-4">
       <!-- Logo -->
       <div class="flex items-center">
-        <a href="{% url 'authentication:show_main' %}" class="text-2xl font-bold" style="color: #983132;">
+        <a href="{% url 'authentication:home' %}" class="text-2xl font-bold" style="color: #983132;">
           <i class="fas fa-map-marked-alt mr-2" style="color: #E1A85F;"></i>
           Funtastic Bros
         </a>
@@ -11,7 +11,7 @@
 
       <!-- Desktop Navigation -->
       <div class="hidden md:flex items-center space-x-6">
-        <a href="{% url 'authentication:show_main' %}" class="nav-link transition duration-200">
+        <a href="{% url 'authentication:home' %}" class="nav-link transition duration-200">
           <i class="fas fa-home mr-1" style="color: #E1A85F;"></i>Home
         </a>
         <a href="{% url 'itinerary:explore' %}" class="nav-link transition duration-200">

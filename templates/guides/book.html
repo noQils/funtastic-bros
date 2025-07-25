@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Book {{ guide.full_name }} - Funtastic Bros</title>
+{% endblock meta %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold mb-2" style="color: #983132;">Book Your Tour Guide</h1>
+            <p class="text-gray-600">Complete your booking with {{ guide.full_name }}</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Guide Info -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden sticky top-8">
+                    <div class="p-6">
+                        <!-- Guide Profile -->
+                        <div class="text-center mb-6">
+                            <div class="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4" style="background-color: #983132;">
+                                {{ guide.user.first_name|first|default:guide.user.username|first|upper }}
+                            </div>
+                            <h3 class="text-xl font-semibold">{{ guide.full_name }}</h3>
+                            <div class="flex items-center justify-center mt-2">
+                                <div class="flex text-yellow-400 mr-2">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter0 < guide.average_rating %}
+                                        <i class="fas fa-star"></i>
+                                        {% else %}
+                                        <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <span class="text-gray-600">{{ guide.average_rating }}/5</span>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="space-y-3 mb-6">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Experience:</span>
+                                <span class="font-semibold">{{ guide.years_of_experience }} years</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Total Tours:</span>
+                                <span class="font-semibold">{{ guide.total_tours }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Reviews:</span>
+                                <span class="font-semibold">{{ guide.total_reviews }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Specialties -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold mb-3" style="color: #983132;">Specialties</h4>
+                            <div class="flex flex-wrap gap-2">
+                                {% for specialty in guide.specialties.all %}
+                                <span class="px-3 py-1 bg-red-100 text-red-800 text-sm rounded-full">
+                                    {{ specialty.name }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Languages -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold mb-3" style="color: #983132;">Languages</h4>
+                            <div class="flex flex-wrap gap-2">
+                                {% for language in guide.languages.all %}
+                                <span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                                    {{ language.name }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Pricing -->
+                        <div class="pt-4 border-t border-gray-200">
+                            <h4 class="font-semibold mb-3" style="color: #983132;">Pricing</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Hourly Rate:</span>
+                                    <span class="font-semibold">Rp {{ guide.hourly_rate|floatformat:0 }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Daily Rate:</span>
+                                    <span class="font-semibold">Rp {{ guide.daily_rate|floatformat:0 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Form -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-semibold mb-6" style="color: #983132;">
+                        <i class="fas fa-calendar-check mr-2"></i>
+                        Booking Details
+                    </h2>
+
+                    <form method="POST" id="booking-form">
+                        {% csrf_token %}
+                        
+                        <!-- Date Selection -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-2" style="color: #983132;">
+                                    <i class="fas fa-calendar mr-1"></i>
+                                    Start Date
+                                </label>
+                                <input type="date" name="start_date" id="start_date" required
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2" style="color: #983132;">
+                                    <i class="fas fa-calendar mr-1"></i>
+                                    End Date
+                                </label>
+                                <input type="date" name="end_date" id="end_date" required
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            </div>
+                        </div>
+
+                        <!-- Service Type -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium mb-3" style="color: #983132;">
+                                <i class="fas fa-clock mr-1"></i>
+                                Service Type
+                            </label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <label class="relative">
+                                    <input type="radio" name="service_type" value="hourly" class="sr-only" required>
+                                    <div class="service-option border-2 border-gray-300 rounded-lg p-4 cursor-pointer hover:border-red-400 transition-colors">
+                                        <div class="text-center">
+                                            <div class="text-2xl mb-2">🕐</div>
+                                            <h3 class="font-semibold">Hourly Rate</h3>
+                                            <p class="text-sm text-gray-600">Rp {{ guide.hourly_rate|floatformat:0 }}/hour</p>
+                                            <p class="text-xs text-gray-500 mt-1">Flexible timing</p>
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="relative">
+                                    <input type="radio" name="service_type" value="daily" class="sr-only" required>
+                                    <div class="service-option border-2 border-gray-300 rounded-lg p-4 cursor-pointer hover:border-red-400 transition-colors">
+                                        <div class="text-center">
+                                            <div class="text-2xl mb-2">📅</div>
+                                            <h3 class="font-semibold">Daily Rate</h3>
+                                            <p class="text-sm text-gray-600">Rp {{ guide.daily_rate|floatformat:0 }}/day</p>
+                                            <p class="text-xs text-gray-500 mt-1">Full day service</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Hours/Days Input -->
+                        <div class="mb-6" id="hours-input" style="display: none;">
+                            <label class="block text-sm font-medium mb-2" style="color: #983132;">
+                                <i class="fas fa-hourglass-half mr-1"></i>
+                                Number of Hours per Day
+                            </label>
+                            <input type="number" name="hours_per_day" min="1" max="12" value="8"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-2" style="color: #983132;">
+                                    <i class="fas fa-user mr-1"></i>
+                                    Your Name
+                                </label>
+                                <input type="text" name="tourist_name" value="{{ user.get_full_name }}" required
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2" style="color: #983132;">
+                                    <i class="fas fa-phone mr-1"></i>
+                                    Phone Number
+                                </label>
+                                <input type="tel" name="phone" required
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            </div>
+                        </div>
+
+                        <!-- Special Requests -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium mb-2" style="color: #983132;">
+                                <i class="fas fa-comment mr-1"></i>
+                                Special Requests (Optional)
+                            </label>
+                            <textarea name="special_requests" rows="4" 
+                                      placeholder="Any specific requirements, accessibility needs, or special requests..."
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"></textarea>
+                        </div>
+
+                        <!-- Cost Estimate -->
+                        <div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400">
+                            <h4 class="font-semibold mb-2" style="color: #92400e;">
+                                <i class="fas fa-calculator mr-2"></i>
+                                Cost Estimate
+                            </h4>
+                            <div id="cost-breakdown" class="text-yellow-800">
+                                <p>Select service type and dates to see cost estimate</p>
+                            </div>
+                        </div>
+
+                        <!-- Terms Agreement -->
+                        <div class="mb-6">
+                            <label class="flex items-start">
+                                <input type="checkbox" name="agree_terms" required 
+                                       class="mt-1 mr-3 w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                                <span class="text-sm text-gray-700">
+                                    I agree to the <a href="#" class="text-red-600 hover:underline">Terms of Service</a> 
+                                    and <a href="#" class="text-red-600 hover:underline">Booking Policy</a>. 
+                                    I understand that this booking request will be sent to the guide for confirmation.
+                                </span>
+                            </label>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="text-center">
+                            <button type="submit" id="submit-btn" 
+                                    class="w-full px-8 py-4 text-white rounded-lg font-semibold hover:opacity-90 transition duration-200 shadow-lg" 
+                                    style="background-color: #983132;">
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                Send Booking Request
+                            </button>
+                            <p class="text-sm text-gray-500 mt-2">
+                                No payment required now. The guide will contact you to confirm details.
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('booking-form');
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const serviceTypeInputs = document.querySelectorAll('input[name="service_type"]');
+    const hoursInput = document.getElementById('hours-input');
+    const hoursPerDayInput = document.querySelector('input[name="hours_per_day"]');
+    const costBreakdown = document.getElementById('cost-breakdown');
+    
+    const hourlyRate = {{ guide.hourly_rate }};
+    const dailyRate = {{ guide.daily_rate }};
+
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    startDateInput.min = today;
+    endDateInput.min = today;
+
+    // Service type selection
+    serviceTypeInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            document.querySelectorAll('.service-option').forEach(option => {
+                option.classList.remove('border-red-500', 'bg-red-50');
+                option.classList.add('border-gray-300');
+            });
+            if (this.checked) {
+                this.nextElementSibling.classList.remove('border-gray-300');
+                this.nextElementSibling.classList.add('border-red-500', 'bg-red-50');
+                
+                if (this.value === 'hourly') {
+                    hoursInput.style.display = 'block';
+                } else {
+                    hoursInput.style.display = 'none';
+                }
+                updateCostEstimate();
+            }
+        });
+    });
+
+    // Date change handlers
+    startDateInput.addEventListener('change', function() {
+        endDateInput.min = this.value;
+        if (endDateInput.value && endDateInput.value < this.value) {
+            endDateInput.value = this.value;
+        }
+        updateCostEstimate();
+    });
+
+    endDateInput.addEventListener('change', updateCostEstimate);
+    hoursPerDayInput.addEventListener('input', updateCostEstimate);
+
+    function updateCostEstimate() {
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+        const serviceType = document.querySelector('input[name="service_type"]:checked');
+        
+        if (!startDate || !endDate || !serviceType) {
+            costBreakdown.innerHTML = '<p>Select service type and dates to see cost estimate</p>';
+            return;
+        }
+
+        const timeDiff = endDate.getTime() - startDate.getTime();
+        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+
+        let totalCost = 0;
+        let breakdown = '';
+
+        if (serviceType.value === 'hourly') {
+            const hoursPerDay = parseInt(hoursPerDayInput.value) || 8;
+            const totalHours = daysDiff * hoursPerDay;
+            totalCost = totalHours * hourlyRate;
+            breakdown = `
+                <div class="space-y-1">
+                    <div class="flex justify-between">
+                        <span>${daysDiff} day(s) × ${hoursPerDay} hours × Rp ${hourlyRate.toLocaleString()}</span>
+                        <span>Rp ${totalCost.toLocaleString()}</span>
+                    </div>
+                    <div class="flex justify-between font-semibold border-t pt-1">
+                        <span>Total Estimate:</span>
+                        <span>Rp ${totalCost.toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            totalCost = daysDiff * dailyRate;
+            breakdown = `
+                <div class="space-y-1">
+                    <div class="flex justify-between">
+                        <span>${daysDiff} day(s) × Rp ${dailyRate.toLocaleString()}</span>
+                        <span>Rp ${totalCost.toLocaleString()}</span>
+                    </div>
+                    <div class="flex justify-between font-semibold border-t pt-1">
+                        <span>Total Estimate:</span>
+                        <span>Rp ${totalCost.toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        costBreakdown.innerHTML = breakdown;
+    }
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending Request...';
+    });
+});
+</script>
+
+<style>
+.service-option:has(input:checked) {
+    border-color: #983132 !important;
+    background-color: rgba(152, 49, 50, 0.05) !important;
+}
+</style>
+{% endblock content %}

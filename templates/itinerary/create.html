@@ -1,0 +1,1162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Create Your Perfect Indonesian Itinerary - Funtastic Bros</title>
+<meta name="description" content="Create AI-powered personalized travel itineraries for Indonesian cities with local insights and recommendations">
+{% endblock meta %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 py-8">
+    <div class="max-w-5xl mx-auto px-4">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4" style="background: linear-gradient(135deg, #983132, #E1A85F);">
+                <i class="fas fa-route text-white text-3xl"></i>
+            </div>
+            <h1 class="text-4xl font-bold mb-4" style="color: #983132;">Create Your Perfect Indonesian Adventure</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">Tell us your preferences and our AI will craft a personalized itinerary using real data from Indonesia's top destinations</p>
+        </div>
+
+        <!-- Main Form -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="bg-gradient-to-r from-red-600 to-orange-500 px-8 py-6">
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-magic mr-3"></i>
+                    AI-Powered Itinerary Builder
+                </h2>
+                <p class="text-red-100 mt-2">Powered by Indonesian tourism data and ChatGPT RAG technology</p>
+            </div>
+
+            <form id="itinerary-form" method="POST" action="{% url 'itinerary:generate' %}" class="p-8 space-y-8">
+                {% csrf_token %}
+                
+                <!-- Step 1: Destination -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <div class="step-number">1</div>
+                        <div>
+                            <h3 class="section-title">Choose Your Indonesian Destination</h3>
+                            <p class="section-subtitle">Select the city you want to explore</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                        {% for city in cities %}
+                        <label class="city-card">
+                            <input type="radio" name="city" value="{{ city.id }}" class="sr-only city-input" required>
+                            <div class="city-option">
+                                <div class="city-icon">
+                                    {% if city.name == "Jakarta" %}🏙️
+                                    {% elif city.name == "Bali" %}🌺
+                                    {% elif city.name == "Yogyakarta" %}🏛️
+                                    {% elif city.name == "Bandung" %}🌸
+                                    {% elif city.name == "Surabaya" %}🏭
+                                    {% elif city.name == "Malang" %}🏔️
+                                    {% elif city.name == "Semarang" %}🌊
+                                    {% else %}🏖️{% endif %}
+                                </div>
+                                <h4 class="city-name">{{ city.name }}</h4>
+                                <p class="city-desc">
+                                    {% if city.name == "Jakarta" %}Capital city with modern attractions
+                                    {% elif city.name == "Bali" %}Island paradise with culture & beaches  
+                                    {% elif city.name == "Yogyakarta" %}Cultural heart of Java
+                                    {% elif city.name == "Bandung" %}Cool mountain city
+                                    {% elif city.name == "Surabaya" %}East Java's vibrant metropolis
+                                    {% elif city.name == "Malang" %}Apple city with natural beauty
+                                    {% elif city.name == "Semarang" %}Historic port city
+                                    {% else %}Indonesian gem waiting to explore{% endif %}
+                                </p>
+                                <div class="destinations-count">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    {{ city.destinations.count }} destinations
+                                </div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Step 2: Trip Duration & Dates -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <div class="step-number">2</div>
+                        <div>
+                            <h3 class="section-title">Trip Duration & Timeline</h3>
+                            <p class="section-subtitle">How long will you be staying?</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <!-- Duration Slider -->
+                        <div class="duration-selector">
+                            <label class="input-label">
+                                <i class="fas fa-calendar-alt mr-2"></i>
+                                Trip Duration
+                            </label>
+                            <div class="slider-container">
+                                <input type="range" name="duration_days" id="duration-slider" 
+                                       min="1" max="14" value="3" 
+                                       class="duration-slider">
+                                <div class="slider-display">
+                                    <span id="duration-display" class="duration-number">3</span>
+                                    <span class="duration-text">days</span>
+                                </div>
+                            </div>
+                            <div class="slider-labels">
+                                <span>1 day</span>
+                                <span>14 days</span>
+                            </div>
+                        </div>
+
+                        <!-- Start Date -->
+                        <div class="date-selector">
+                            <label class="input-label" for="start_date">
+                                <i class="fas fa-calendar-day mr-2"></i>
+                                Start Date
+                            </label>
+                            <input type="date" name="start_date" id="start_date" required
+                                   class="date-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Budget Range -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <div class="step-number">3</div>
+                        <div>
+                            <h3 class="section-title">Budget Range (Per Day)</h3>
+                            <p class="section-subtitle">What's your daily spending comfort zone?</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                        <label class="budget-card">
+                            <input type="radio" name="budget_range" value="budget" class="sr-only budget-input" required>
+                            <div class="budget-option">
+                                <div class="budget-icon">💰</div>
+                                <h4 class="budget-title">Budget Traveler</h4>
+                                <div class="budget-amount">Under Rp 500K</div>
+                                <ul class="budget-features">
+                                    <li>Local warungs & street food</li>
+                                    <li>Public transportation</li>
+                                    <li>Free attractions & markets</li>
+                                    <li>Budget accommodation</li>
+                                </ul>
+                            </div>
+                        </label>
+
+                        <label class="budget-card">
+                            <input type="radio" name="budget_range" value="mid-range" class="sr-only budget-input" required>
+                            <div class="budget-option">
+                                <div class="budget-icon">💳</div>
+                                <h4 class="budget-title">Comfortable Explorer</h4>
+                                <div class="budget-amount">Rp 500K - 1.5M</div>
+                                <ul class="budget-features">
+                                    <li>Mix of local & restaurants</li>
+                                    <li>Grab & comfortable transport</li>
+                                    <li>Paid attractions & experiences</li>
+                                    <li>Mid-range accommodation</li>
+                                </ul>
+                            </div>
+                        </label>
+
+                        <label class="budget-card">
+                            <input type="radio" name="budget_range" value="luxury" class="sr-only budget-input" required>
+                            <div class="budget-option">
+                                <div class="budget-icon">💎</div>
+                                <h4 class="budget-title">Luxury Experience</h4>
+                                <div class="budget-amount">Over Rp 1.5M</div>
+                                <ul class="budget-features">
+                                    <li>Fine dining & premium venues</li>
+                                    <li>Private transport & tours</li>
+                                    <li>Exclusive experiences</li>
+                                    <li>Luxury accommodation</li>
+                                </ul>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Step 4: Travel Interests -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <div class="step-number">4</div>
+                        <div>
+                            <h3 class="section-title">What Interests You Most?</h3>
+                            <p class="section-subtitle">Select at least 2 interests to personalize your itinerary</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
+                        {% for interest in interests %}
+                        <label class="interest-card">
+                            <input type="checkbox" name="interests" value="{{ interest.id }}" class="sr-only interest-input">
+                            <div class="interest-option">
+                                <div class="interest-icon">
+                                    {% if interest.name == "Food" %}🍜
+                                    {% elif interest.name == "Nature" %}🌿
+                                    {% elif interest.name == "Culture" %}🏛️
+                                    {% elif interest.name == "Adventure" %}🏔️
+                                    {% elif interest.name == "Shopping" %}🛍️
+                                    {% elif interest.name == "Architecture" %}🏗️
+                                    {% elif interest.name == "Photography" %}📸
+                                    {% elif interest.name == "Relaxation" %}🧘
+                                    {% elif interest.name == "Nightlife" %}🌃
+                                    {% elif interest.name == "History" %}📚
+                                    {% elif interest.name == "Art" %}🎨
+                                    {% elif interest.name == "Music" %}🎵
+                                    {% elif interest.name == "Sports" %}⚽
+                                    {% elif interest.name == "Wildlife" %}🐅
+                                    {% elif interest.name == "Beaches" %}🏖️
+                                    {% elif interest.name == "Mountains" %}⛰️
+                                    {% elif interest.name == "Religion" %}🕌
+                                    {% elif interest.name == "Local Life" %}🏘️
+                                    {% else %}🎯{% endif %}
+                                </div>
+                                <span class="interest-name">{{ interest.name }}</span>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <div class="interest-counter mt-4">
+                        <span id="interest-count">0</span> interests selected (minimum 2 required)
+                    </div>
+                </div>
+
+                <!-- Step 5: Travel Style -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <div class="step-number">5</div>
+                        <div>
+                            <h3 class="section-title">Your Travel Style</h3>
+                            <p class="section-subtitle">How do you prefer to explore?</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                        <label class="style-card">
+                            <input type="radio" name="travel_style" value="relaxed" class="sr-only style-input" required>
+                            <div class="style-option">
+                                <div class="style-icon">🧘</div>
+                                <h4 class="style-title">Relaxed</h4>
+                                <p class="style-desc">2-3 activities per day</p>
+                                <p class="style-detail">Take it slow, enjoy the moment</p>
+                            </div>
+                        </label>
+
+                        <label class="style-card">
+                            <input type="radio" name="travel_style" value="balanced" class="sr-only style-input" required>
+                            <div class="style-option">
+                                <div class="style-icon">⚖️</div>
+                                <h4 class="style-title">Balanced</h4>
+                                <p class="style-desc">3-4 activities per day</p>
+                                <p class="style-detail">Perfect mix of exploration & rest</p>
+                            </div>
+                        </label>
+
+                        <label class="style-card">
+                            <input type="radio" name="travel_style" value="packed" class="sr-only style-input" required>
+                            <div class="style-option">
+                                <div class="style-icon">📋</div>
+                                <h4 class="style-title">Packed</h4>
+                                <p class="style-desc">4-5 activities per day</p>
+                                <p class="style-detail">See and do more each day</p>
+                            </div>
+                        </label>
+
+                        <label class="style-card">
+                            <input type="radio" name="travel_style" value="action-packed" class="sr-only style-input" required>
+                            <div class="style-option">
+                                <div class="style-icon">⚡</div>
+                                <h4 class="style-title">Action-Packed</h4>
+                                <p class="style-desc">5-7 activities per day</p>
+                                <p class="style-detail">Maximum adventure & experiences</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Step 6: Additional Preferences -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <div class="step-number">6</div>
+                        <div>
+                            <h3 class="section-title">Special Requests & Preferences</h3>
+                            <p class="section-subtitle">Any specific requirements or places you'd like to visit? (Optional)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <textarea name="additional_preferences" id="additional_preferences" rows="4" 
+                                  placeholder="Examples: &#10;• Must-visit specific temples or landmarks&#10;• Dietary restrictions or food preferences&#10;• Accessibility needs&#10;• Photography spots for Instagram&#10;• Local experiences like cooking classes&#10;• Avoid crowded tourist areas"
+                                  class="preference-textarea"></textarea>
+                    </div>
+                </div>
+
+                <!-- AI Enhancement Notice -->
+                <div class="ai-notice">
+                    <div class="ai-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="ai-content">
+                        <h4 class="ai-title">Powered by AI & Indonesian Tourism Data</h4>
+                        <p class="ai-description">
+                            Our system uses advanced RAG (Retrieval-Augmented Generation) technology to analyze your preferences 
+                            against real Indonesian tourism data, creating personalized itineraries with authentic local recommendations.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="submit-section">
+                    <button type="submit" id="generate-btn" class="generate-button">
+                        <div class="button-content">
+                            <i class="fas fa-magic mr-3"></i>
+                            <span id="btn-text">Generate My Perfect Itinerary</span>
+                        </div>
+                        <div id="loading-spinner" class="loading-spinner hidden">
+                            <div class="spinner"></div>
+                            <span>AI is crafting your personalized itinerary...</span>
+                        </div>
+                    </button>
+                    
+                    <p class="submit-note">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Processing usually takes 10-30 seconds depending on complexity
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Custom Styles for Enhanced UI */
+.form-section {
+    background-color: #f9fafb;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.section-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.step-number {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #dc2626, #ea580c);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    margin-right: 16px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #1f2937;
+}
+
+.section-subtitle {
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.input-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+/* City Cards */
+.city-card {
+    cursor: pointer;
+}
+
+.city-option {
+    padding: 24px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    transition: all 0.2s;
+    background: white;
+    text-align: center;
+}
+
+.city-option:hover {
+    border-color: #fca5a5;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.city-input:checked + .city-option {
+    border-color: #dc2626;
+    background-color: #fef2f2;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.city-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+}
+
+.city-name {
+    font-weight: bold;
+    font-size: 18px;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.city-desc {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 12px;
+}
+
+.destinations-count {
+    font-size: 12px;
+    color: #dc2626;
+    font-weight: 500;
+}
+
+/* Duration Slider */
+.duration-selector {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+}
+
+.slider-container {
+    position: relative;
+    margin-top: 16px;
+    margin-bottom: 8px;
+}
+
+.duration-slider {
+    width: 100%;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 8px;
+    appearance: none;
+    cursor: pointer;
+}
+
+.duration-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #dc2626, #ea580c);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.slider-display {
+    text-align: center;
+    margin-top: 16px;
+}
+
+.duration-number {
+    font-size: 30px;
+    font-weight: bold;
+    color: #dc2626;
+}
+
+.duration-text {
+    font-size: 18px;
+    color: #6b7280;
+    margin-left: 8px;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* Date Input */
+.date-selector {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+}
+
+.date-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: white;
+}
+
+.date-input:focus {
+    outline: none;
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* Budget Cards */
+.budget-card {
+    cursor: pointer;
+}
+
+.budget-option {
+    padding: 24px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    transition: all 0.2s;
+    background: white;
+}
+
+.budget-option:hover {
+    border-color: #fca5a5;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.budget-input:checked + .budget-option {
+    border-color: #dc2626;
+    background-color: #fef2f2;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.budget-icon {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.budget-title {
+    font-weight: bold;
+    font-size: 18px;
+    text-align: center;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.budget-amount {
+    text-align: center;
+    color: #dc2626;
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 16px;
+}
+
+.budget-features {
+    font-size: 14px;
+    color: #6b7280;
+    list-style: none;
+    padding: 0;
+}
+
+.budget-features li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.budget-features li::before {
+    content: "✓";
+    color: #10b981;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+/* Interest Cards */
+.interest-card {
+    cursor: pointer;
+}
+
+.interest-option {
+    padding: 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    transition: all 0.2s;
+    background: white;
+    text-align: center;
+}
+
+.interest-option:hover {
+    border-color: #fca5a5;
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+.interest-input:checked + .interest-option {
+    border-color: #dc2626;
+    background-color: #fef2f2;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.interest-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.interest-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.interest-counter {
+    text-align: center;
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 16px;
+}
+
+#interest-count {
+    font-weight: bold;
+    color: #dc2626;
+}
+
+/* Style Cards */
+.style-card {
+    cursor: pointer;
+}
+
+.style-option {
+    padding: 24px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    transition: all 0.2s;
+    background: white;
+    text-align: center;
+}
+
+.style-option:hover {
+    border-color: #fca5a5;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.style-input:checked + .style-option {
+    border-color: #dc2626;
+    background-color: #fef2f2;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.style-icon {
+    font-size: 30px;
+    margin-bottom: 12px;
+}
+
+.style-title {
+    font-weight: bold;
+    font-size: 18px;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.style-desc {
+    color: #dc2626;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.style-detail {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* Preferences Textarea */
+.preference-textarea {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: white;
+    min-height: 120px;
+    resize: vertical;
+}
+
+.preference-textarea:focus {
+    outline: none;
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* AI Notice */
+.ai-notice {
+    background: linear-gradient(135deg, #eff6ff, #f3e8ff);
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.ai-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+}
+
+.ai-title {
+    font-weight: bold;
+    font-size: 18px;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.ai-description {
+    color: #6b7280;
+    line-height: 1.6;
+}
+
+/* Submit Section */
+.submit-section {
+    text-align: center;
+}
+
+.generate-button {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #dc2626, #ea580c);
+    color: white;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.generate-button:hover {
+    background: linear-gradient(135deg, #b91c1c, #c2410c);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.generate-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.button-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+    border-radius: 50%;
+    height: 24px;
+    width: 24px;
+    border: 2px solid transparent;
+    border-bottom: 2px solid white;
+    margin-right: 12px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.submit-note {
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 16px;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Grid Layouts */
+.grid {
+    display: grid;
+}
+
+.grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gap-4 {
+    gap: 16px;
+}
+
+.gap-6 {
+    gap: 24px;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+    .md\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    
+    .md\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    
+    .lg\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .city-option, .budget-option, .style-option {
+        padding: 16px;
+    }
+    
+    .city-icon, .budget-icon {
+        font-size: 30px;
+    }
+    
+    .interest-option {
+        padding: 12px;
+    }
+    
+    .form-section {
+        padding: 16px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Duration slider functionality
+    const durationSlider = document.getElementById('duration-slider');
+    const durationDisplay = document.getElementById('duration-display');
+    
+    durationSlider.addEventListener('input', function() {
+        durationDisplay.textContent = this.value;
+    });
+
+    // Set minimum date to today
+    const startDateInput = document.getElementById('start_date');
+    const today = new Date().toISOString().split('T')[0];
+    startDateInput.min = today;
+    startDateInput.value = today;
+
+    // Interest counter
+    const interestInputs = document.querySelectorAll('.interest-input');
+    const interestCount = document.getElementById('interest-count');
+    
+    function updateInterestCount() {
+        const selected = document.querySelectorAll('.interest-input:checked').length;
+        interestCount.textContent = selected;
+        interestCount.style.color = selected >= 2 ? '#dc2626' : '#ef4444';
+    }
+    
+    interestInputs.forEach(input => {
+        input.addEventListener('change', updateInterestCount);
+    });
+
+    // Form submission with validation
+    const form = document.getElementById('itinerary-form');
+    const generateBtn = document.getElementById('generate-btn');
+    const btnText = document.getElementById('btn-text');
+    const loadingSpinner = document.getElementById('loading-spinner');
+
+    form.addEventListener('submit', function(e) {
+        // Validate interests (at least 2 selected)
+        const selectedInterests = document.querySelectorAll('.interest-input:checked');
+        if (selectedInterests.length < 2) {
+            e.preventDefault();
+            alert('Please select at least 2 interests to help us personalize your itinerary.');
+            return;
+        }
+
+        // Show loading state
+        generateBtn.disabled = true;
+        btnText.style.display = 'none';
+        loadingSpinner.classList.remove('hidden');
+        
+        // Scroll to top to show progress
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Initialize interest count
+    updateInterestCount();
+});
+</script>
+{% endblock content %}
+                        </label>
+                        <label class="relative">
+                            <input type="radio" name="budget_range" value="mid-range" class="sr-only" required>
+                            <div class="budget-option border-2 border-gray-300 rounded-lg p-4 cursor-pointer hover:border-red-400 transition-colors">
+                                <div class="text-center">
+                                    <div class="text-2xl mb-2">💳</div>
+                                    <h3 class="font-semibold">Mid-Range</h3>
+                                    <p class="text-sm text-gray-600">Rp 500K - 1.5M</p>
+                                    <p class="text-xs text-gray-500 mt-1">Nice restaurants, comfortable transport</p>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="relative">
+                            <input type="radio" name="budget_range" value="luxury" class="sr-only" required>
+                            <div class="budget-option border-2 border-gray-300 rounded-lg p-4 cursor-pointer hover:border-red-400 transition-colors">
+                                <div class="text-center">
+                                    <div class="text-2xl mb-2">💎</div>
+                                    <h3 class="font-semibold">Luxury</h3>
+                                    <p class="text-sm text-gray-600">Over Rp 1.5M</p>
+                                    <p class="text-xs text-gray-500 mt-1">Premium experiences, private transport</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Duration -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2" style="color: #983132;">
+                        <i class="fas fa-calendar mr-2"></i>Trip Duration
+                    </label>
+                    <div class="flex items-center space-x-4">
+                        <input type="range" name="duration_days" id="duration-slider" min="1" max="14" value="3" class="flex-1">
+                        <div class="text-lg font-semibold" style="color: #983132;">
+                            <span id="duration-display">3</span> days
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-500 mt-1">
+                        <span>1 day</span>
+                        <span>14 days</span>
+                    </div>
+                </div>
+
+                <!-- Start Date -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2" style="color: #983132;">
+                        <i class="fas fa-calendar-day mr-2"></i>Start Date
+                    </label>
+                    <input type="date" name="start_date" id="start_date" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" required>
+                </div>
+
+                <!-- Travel Interests -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2" style="color: #983132;">
+                        <i class="fas fa-heart mr-2"></i>Your Interests (select at least 2)
+                    </label>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {% for interest in interests %}
+                        <label class="relative">
+                            <input type="checkbox" name="interests" value="{{ interest.id }}" class="sr-only interest-checkbox">
+                            <div class="interest-option border-2 border-gray-300 rounded-lg p-3 cursor-pointer hover:border-red-400 transition-colors text-center">
+                                <div class="text-2xl mb-1">
+                                    {% if interest.name == "Food" %}🍜
+                                    {% elif interest.name == "Nature" %}🌿
+                                    {% elif interest.name == "Culture" %}🏛️
+                                    {% elif interest.name == "Adventure" %}🏔️
+                                    {% elif interest.name == "Shopping" %}🛍️
+                                    {% elif interest.name == "Architecture" %}🏗️
+                                    {% elif interest.name == "Photography" %}📸
+                                    {% elif interest.name == "Relaxation" %}🧘
+                                    {% elif interest.name == "Nightlife" %}🌃
+                                    {% else %}🎯{% endif %}
+                                </div>
+                                <span class="text-sm font-medium">{{ interest.name }}</span>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">Select at least 2 interests to help us personalize your itinerary</p>
+                </div>
+
+                <!-- Travel Style -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2" style="color: #983132;">
+                        <i class="fas fa-route mr-2"></i>Travel Style
+                    </label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <label class="relative">
+                            <input type="radio" name="travel_style" value="relaxed" class="sr-only" required>
+                            <div class="style-option border-2 border-gray-300 rounded-lg p-4 cursor-pointer hover:border-red-400 transition-colors">
+                                <div class="text-center">
+                                    <div class="text-2xl mb-2">🧘</div>
+                                    <h3 class="font-semibold">Relaxed</h3>
+                                    <p class="text-sm text-gray-600">2-3 activities per day</p>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="relative">
+                            <input type="radio" name="travel_style" value="balanced" class="sr-only" required>
+                            <div class="style-option border-2 border-gray-300 rounded-lg p-4 cursor-pointer hover:border-red-400 transition-colors">
+                                <div class="text-center">
+                                    <div class="text-2xl mb-2">⚖️</div>
+                                    <h3 class="font-semibold">Balanced</h3>
+                                    <p class="text-sm text-gray-600">3-4 activities per day</p>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="relative">
+                            <input type="radio" name="travel_style" value="packed" class="sr-only" required>
+                            <div class="style-option border-2 border-gray-300 rounded-lg p-4 cursor-pointer hover:border-red-400 transition-colors">
+                                <div class="text-center">
+                                    <div class="text-2xl mb-2">📋</div>
+                                    <h3 class="font-semibold">Packed</h3>
+                                    <p class="text-sm text-gray-600">4-5 activities per day</p>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="relative">
+                            <input type="radio" name="travel_style" value="action-packed" class="sr-only" required>
+                            <div class="style-option border-2 border-gray-300 rounded-lg p-4 cursor-pointer hover:border-red-400 transition-colors">
+                                <div class="text-center">
+                                    <div class="text-2xl mb-2">⚡</div>
+                                    <h3 class="font-semibold">Action-Packed</h3>
+                                    <p class="text-sm text-gray-600">5-7 activities per day</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Additional Preferences -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium mb-2" style="color: #983132;">
+                        <i class="fas fa-comment mr-2"></i>Additional Preferences (Optional)
+                    </label>
+                    <textarea name="additional_preferences" id="additional_preferences" rows="3" 
+                        placeholder="Any special requirements, accessibility needs, or specific places you'd like to visit?"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" id="generate-btn" class="px-8 py-3 text-white rounded-lg font-semibold hover:opacity-90 transition duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" style="background-color: #983132;">
+                        <i class="fas fa-magic mr-2"></i>
+                        <span id="btn-text">Generate My Itinerary</span>
+                        <div id="loading-spinner" class="hidden inline-block ml-2">
+                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        </div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Duration slider functionality
+    const durationSlider = document.getElementById('duration-slider');
+    const durationDisplay = document.getElementById('duration-display');
+    
+    durationSlider.addEventListener('input', function() {
+        durationDisplay.textContent = this.value;
+    });
+
+    // Set minimum date to today
+    const startDateInput = document.getElementById('start_date');
+    const today = new Date().toISOString().split('T')[0];
+    startDateInput.min = today;
+    startDateInput.value = today;
+
+    // Budget option selection
+    const budgetOptions = document.querySelectorAll('input[name="budget_range"]');
+    budgetOptions.forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.budget-option').forEach(option => {
+                option.classList.remove('border-red-500', 'bg-red-50');
+                option.classList.add('border-gray-300');
+            });
+            if (this.checked) {
+                this.nextElementSibling.classList.remove('border-gray-300');
+                this.nextElementSibling.classList.add('border-red-500', 'bg-red-50');
+            }
+        });
+    });
+
+    // Travel style selection
+    const styleOptions = document.querySelectorAll('input[name="travel_style"]');
+    styleOptions.forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.style-option').forEach(option => {
+                option.classList.remove('border-red-500', 'bg-red-50');
+                option.classList.add('border-gray-300');
+            });
+            if (this.checked) {
+                this.nextElementSibling.classList.remove('border-gray-300');
+                this.nextElementSibling.classList.add('border-red-500', 'bg-red-50');
+            }
+        });
+    });
+
+    // Interest selection
+    const interestCheckboxes = document.querySelectorAll('.interest-checkbox');
+    interestCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const option = this.nextElementSibling;
+            if (this.checked) {
+                option.classList.remove('border-gray-300');
+                option.classList.add('border-red-500', 'bg-red-50');
+            } else {
+                option.classList.remove('border-red-500', 'bg-red-50');
+                option.classList.add('border-gray-300');
+            }
+        });
+    });
+
+    // Form submission
+    const form = document.getElementById('itinerary-form');
+    const generateBtn = document.getElementById('generate-btn');
+    const btnText = document.getElementById('btn-text');
+    const loadingSpinner = document.getElementById('loading-spinner');
+
+    form.addEventListener('submit', function(e) {
+        // Validate interests (at least 2 selected)
+        const selectedInterests = document.querySelectorAll('input[name="interests"]:checked');
+        if (selectedInterests.length < 2) {
+            e.preventDefault();
+            alert('Please select at least 2 interests to help us personalize your itinerary.');
+            return;
+        }
+
+        // Show loading state
+        generateBtn.disabled = true;
+        btnText.textContent = 'Generating Itinerary...';
+        loadingSpinner.classList.remove('hidden');
+    });
+});
+</script>
+
+<style>
+.budget-option:has(input:checked),
+.style-option:has(input:checked),
+.interest-option:has(input:checked) {
+    border-color: #983132 !important;
+    background-color: rgba(152, 49, 50, 0.05) !important;
+}
+</style>

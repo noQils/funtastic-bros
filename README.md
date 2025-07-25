@@ -1,6 +1,22 @@
-# Funtastic Bros - AI-Powered Travel Itinerary & Tour Guide Matching App
+# Funtastic Bros - AI-Powered Indonesian Travel Itinerary & Tour Guide Matching App
 
 A comprehensive MVP for an Indonesia-focused travel platform that uses AI to generate personalized itineraries and connects tourists with local tour guides.
+
+## 🎉 LATEST UPDATE: Enhanced AI-Powered Itinerary Creation
+
+Your app now features a **comprehensive 6-step itinerary creation interface** with:
+
+### ✨ New Features Just Added:
+- **🇮🇩 Indonesian Cities**: 7 major destinations (Jakarta, Bali, Yogyakarta, Bandung, Surabaya, Malang, Semarang)
+- **🤖 RAG Technology**: AI service ready for ChatGPT integration with Indonesian tourism data
+- **🎯 Smart Personalization**: 18 interest categories, budget ranges, travel styles
+- **📱 Beautiful UI**: Indonesian flag-inspired design with interactive elements
+- **⚡ Navigation Fixed**: "Make Itinerary" button now works perfectly
+
+### 🚀 Ready to Test:
+Visit **http://127.0.0.1:8000/itinerary/create/** to experience the enhanced creation flow!
+
+---
 
 ## 🚀 Features
 

@@ -7,3 +7,6 @@ urllib3
 django-cors-headers
 python-dotenv
 openai
+pandas
+numpy
+scikit-learn
