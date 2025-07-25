@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Destinations - Funtastic Bros{% endblock %}
+
+{% block content %}
+<div class="min-h-screen" style="background: linear-gradient(135deg, #F7F3E3 0%, #E8DCC0 100%);">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold mb-4" style="color: #983132;">
+        <i class="fas fa-map-pin mr-3" style="color: #E1A85F;"></i>
+        Destinations
+      </h1>
+      <p class="text-lg" style="color: #5D4E37;">
+        Discover amazing places to visit in Indonesia
+      </p>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+      <form method="GET" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Search -->
+          <div>
+            <label class="block text-sm font-medium mb-2" style="color: #983132;">Search</label>
+            <input type="text" name="search" value="{{ search_query }}" 
+                   placeholder="Search destinations..."
+                   class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                   style="border-color: #E1A85F;">
+          </div>
+          
+          <!-- City Filter -->
+          <div>
+            <label class="block text-sm font-medium mb-2" style="color: #983132;">City</label>
+            <select name="city" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                    style="border-color: #E1A85F;">
+              <option value="">All Cities</option>
+              {% for city in cities %}
+                <option value="{{ city.name }}" {% if city_filter == city.name %}selected{% endif %}>
+                  {{ city.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <!-- Category Filter -->
+          <div>
+            <label class="block text-sm font-medium mb-2" style="color: #983132;">Category</label>
+            <select name="category" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                    style="border-color: #E1A85F;">
+              <option value="">All Categories</option>
+              {% for category in categories %}
+                <option value="{{ category.name }}" {% if category_filter == category.name %}selected{% endif %}>
+                  {{ category.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        
+        <div class="flex justify-center">
+          <button type="submit" class="btn-primary px-6 py-2 rounded-lg">
+            <i class="fas fa-search mr-2"></i>Search Destinations
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Destinations Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      {% for destination in page_obj %}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition duration-300">
+          <div class="h-48 bg-gray-200 flex items-center justify-center" style="background-color: #F7F3E3;">
+            <i class="fas fa-image text-4xl" style="color: #E1A85F;"></i>
+          </div>
+          
+          <div class="p-6">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-xl font-semibold" style="color: #983132;">
+                {{ destination.name }}
+              </h3>
+              <span class="px-2 py-1 text-xs rounded-full" style="background-color: #E1A85F; color: white;">
+                {{ destination.category.name }}
+              </span>
+            </div>
+            
+            <p class="text-sm mb-3" style="color: #5D4E37;">
+              <i class="fas fa-map-marker-alt mr-1" style="color: #E1A85F;"></i>
+              {{ destination.city.name }}
+            </p>
+            
+            <!-- Rating -->
+            <div class="flex items-center mb-3">
+              {% for i in "12345" %}
+                {% if forloop.counter <= destination.rating %}
+                  <i class="fas fa-star text-sm" style="color: #E1A85F;"></i>
+                {% else %}
+                  <i class="far fa-star text-sm" style="color: #E1A85F;"></i>
+                {% endif %}
+              {% endfor %}
+              <span class="ml-2 text-sm" style="color: #5D4E37;">
+                {{ destination.rating }}/5
+              </span>
+            </div>
+            
+            <p class="text-sm mb-4" style="color: #5D4E37;">
+              {{ destination.description|truncatechars:100 }}
+            </p>
+            
+            <!-- Details -->
+            <div class="space-y-2 mb-4">
+              <div class="flex justify-between text-sm">
+                <span style="color: #983132;">Cost:</span>
+                <span style="color: #5D4E37;">Rp {{ destination.average_cost|floatformat:0 }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span style="color: #983132;">Duration:</span>
+                <span style="color: #5D4E37;">{{ destination.estimated_duration_hours }}h</span>
+              </div>
+              {% if destination.opening_hours %}
+                <div class="flex justify-between text-sm">
+                  <span style="color: #983132;">Hours:</span>
+                  <span style="color: #5D4E37;">{{ destination.opening_hours }}</span>
+                </div>
+              {% endif %}
+            </div>
+            
+            <button class="btn-primary w-full py-2 rounded-lg">
+              <i class="fas fa-info-circle mr-2"></i>View Details
+            </button>
+          </div>
+        </div>
+      {% empty %}
+        <div class="col-span-full text-center py-12">
+          <i class="fas fa-map-pin text-6xl mb-4" style="color: #E1A85F;"></i>
+          <h3 class="text-xl font-semibold mb-2" style="color: #983132;">No destinations found</h3>
+          <p style="color: #5D4E37;">Try adjusting your search criteria</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+      <div class="flex justify-center">
+        <nav class="flex space-x-2">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&city={{ city_filter }}&category={{ category_filter }}"
+               class="px-3 py-2 rounded-lg bg-white border" style="border-color: #E1A85F; color: #983132;">
+              Previous
+            </a>
+          {% endif %}
+          
+          <span class="px-3 py-2 rounded-lg text-white" style="background-color: #983132;">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+          </span>
+          
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&city={{ city_filter }}&category={{ category_filter }}"
+               class="px-3 py-2 rounded-lg bg-white border" style="border-color: #E1A85F; color: #983132;">
+              Next
+            </a>
+          {% endif %}
+        </nav>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

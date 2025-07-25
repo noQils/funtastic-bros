@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Find Tour Guides - Funtastic Bros{% endblock %}
+
+{% block content %}
+<div class="min-h-screen" style="background: linear-gradient(135deg, #F7F3E3 0%, #E8DCC0 100%);">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold mb-4" style="color: #983132;">
+        <i class="fas fa-users mr-3" style="color: #E1A85F;"></i>
+        Find Tour Guides
+      </h1>
+      <p class="text-lg" style="color: #5D4E37;">
+        Connect with experienced local guides for your perfect trip
+      </p>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+      <form method="GET" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <!-- Search -->
+          <div>
+            <label class="block text-sm font-medium mb-2" style="color: #983132;">Search</label>
+            <input type="text" name="search" value="{{ search_query }}" 
+                   placeholder="Search guides..."
+                   class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                   style="border-color: #E1A85F;">
+          </div>
+          
+          <!-- City Filter -->
+          <div>
+            <label class="block text-sm font-medium mb-2" style="color: #983132;">City</label>
+            <select name="city" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                    style="border-color: #E1A85F;">
+              <option value="">All Cities</option>
+              {% for city in cities %}
+                <option value="{{ city.name }}" {% if city_filter == city.name %}selected{% endif %}>
+                  {{ city.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <!-- Specialty Filter -->
+          <div>
+            <label class="block text-sm font-medium mb-2" style="color: #983132;">Specialty</label>
+            <select name="specialty" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                    style="border-color: #E1A85F;">
+              <option value="">All Specialties</option>
+              {% for specialty in specialties %}
+                <option value="{{ specialty.name }}" {% if specialty_filter == specialty.name %}selected{% endif %}>
+                  {{ specialty.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <!-- Language Filter -->
+          <div>
+            <label class="block text-sm font-medium mb-2" style="color: #983132;">Language</label>
+            <select name="language" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                    style="border-color: #E1A85F;">
+              <option value="">All Languages</option>
+              {% for language in languages %}
+                <option value="{{ language.name }}" {% if language_filter == language.name %}selected{% endif %}>
+                  {{ language.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        
+        <div class="flex justify-center">
+          <button type="submit" class="btn-primary px-6 py-2 rounded-lg">
+            <i class="fas fa-search mr-2"></i>Search Guides
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Guides Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      {% for guide in page_obj %}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition duration-300">
+          <div class="p-6">
+            <!-- Guide Avatar -->
+            <div class="text-center mb-4">
+              <div class="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl text-white"
+                   style="background-color: #983132;">
+                <i class="fas fa-user"></i>
+              </div>
+              <h3 class="text-xl font-semibold" style="color: #983132;">
+                {{ guide.user.first_name }} {{ guide.user.last_name }}
+              </h3>
+            </div>
+            
+            <!-- Rating -->
+            <div class="text-center mb-3">
+              {% if guide.avg_rating %}
+                <div class="flex justify-center items-center">
+                  {% for i in "12345" %}
+                    {% if forloop.counter <= guide.avg_rating %}
+                      <i class="fas fa-star" style="color: #E1A85F;"></i>
+                    {% else %}
+                      <i class="far fa-star" style="color: #E1A85F;"></i>
+                    {% endif %}
+                  {% endfor %}
+                  <span class="ml-2 text-sm" style="color: #5D4E37;">
+                    ({{ guide.avg_rating|floatformat:1 }})
+                  </span>
+                </div>
+              {% else %}
+                <span class="text-sm" style="color: #5D4E37;">No ratings yet</span>
+              {% endif %}
+            </div>
+            
+            <!-- Bio -->
+            <p class="text-sm mb-4 text-center" style="color: #5D4E37;">
+              {{ guide.bio|truncatechars:100 }}
+            </p>
+            
+            <!-- Specialties -->
+            <div class="mb-4">
+              <p class="text-xs font-medium mb-2" style="color: #983132;">Specialties:</p>
+              <div class="flex flex-wrap gap-1">
+                {% for specialty in guide.specialties.all %}
+                  <span class="px-2 py-1 text-xs rounded-full" style="background-color: #E1A85F; color: white;">
+                    {{ specialty.name }}
+                  </span>
+                {% endfor %}
+              </div>
+            </div>
+            
+            <!-- Languages -->
+            <div class="mb-4">
+              <p class="text-xs font-medium mb-2" style="color: #983132;">Languages:</p>
+              <div class="flex flex-wrap gap-1">
+                {% for language in guide.languages.all %}
+                  <span class="px-2 py-1 text-xs rounded-full border" style="border-color: #E1A85F; color: #983132;">
+                    {{ language.name }}
+                  </span>
+                {% endfor %}
+              </div>
+            </div>
+            
+            <!-- Price -->
+            <div class="text-center mb-4">
+              <span class="text-lg font-semibold" style="color: #983132;">
+                Rp {{ guide.price_per_day|floatformat:0 }}/day
+              </span>
+            </div>
+            
+            <a href="#" class="btn-primary w-full text-center py-2 rounded-lg">
+              View Profile
+            </a>
+          </div>
+        </div>
+      {% empty %}
+        <div class="col-span-full text-center py-12">
+          <i class="fas fa-users text-6xl mb-4" style="color: #E1A85F;"></i>
+          <h3 class="text-xl font-semibold mb-2" style="color: #983132;">No guides found</h3>
+          <p style="color: #5D4E37;">Try adjusting your search criteria</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+      <div class="flex justify-center">
+        <nav class="flex space-x-2">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&city={{ city_filter }}&specialty={{ specialty_filter }}&language={{ language_filter }}"
+               class="px-3 py-2 rounded-lg bg-white border" style="border-color: #E1A85F; color: #983132;">
+              Previous
+            </a>
+          {% endif %}
+          
+          <span class="px-3 py-2 rounded-lg text-white" style="background-color: #983132;">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+          </span>
+          
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&city={{ city_filter }}&specialty={{ specialty_filter }}&language={{ language_filter }}"
+               class="px-3 py-2 rounded-lg bg-white border" style="border-color: #E1A85F; color: #983132;">
+              Next
+            </a>
+          {% endif %}
+        </nav>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
